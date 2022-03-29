@@ -1,0 +1,12 @@
+/initial_dialog_GUI.py
+/save_layout_dialog_GUI.py
+*.jpg
+.directory
+__pycache__/
+.idea/
+*.png
+*.log
+*.zip
+*.kicad_prl
+metadata_package.json
+metadata.json
