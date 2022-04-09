@@ -277,22 +277,33 @@ class PrjData:
 
 class SaveLayout:
     def __init__(self, board, src_anchor_fp_ref):
+        logger.info(f'Working on {board.GetFileName()}')
+
+        # get the source board data
+        self.src_prjdata = PrjData(board)
+
         logger.info("Saving the current board temporary in order to leave current layout intact")
         # generate new temporary file
         tempdir = tempfile.gettempdir()
         self.temp_filename = os.path.join(tempdir, 'temp_board_file_for_save.kicad_pcb')
         if os.path.isfile(self.temp_filename):
             os.remove(self.temp_filename)
-        pcbnew.SaveBoard(self.temp_filename, board)
-        self.board = pcbnew.LoadBoard(self.temp_filename)
-        logger.info("Get project schematics and layout data")
-        self.prjdata = PrjData(self.board)
-        # override project paths
-        self.prjdata.pcb_filename = os.path.abspath(board.GetFileName())
-        self.prjdata.sch_filename = self.prjdata.pcb_filename.replace(".kicad_pcb", ".kicad_sch")
-        self.prjdata.project_folder = os.path.dirname(self.prjdata.pcb_filename)
+        logger.info(f'Saving board as tempfile: {self.temp_filename}')
+        pcbnew.IO_MGR.Save(pcbnew.IO_MGR.KICAD_SEXP, self.temp_filename, board)
+        #pcbnew.SaveBoard(self.temp_filename, board)
 
-        self.src_anchor_fp = self.prjdata.get_fp_by_ref(src_anchor_fp_ref)
+        self.board = pcbnew.IO_MGR.Load(pcbnew.IO_MGR.KICAD_SEXP, self.temp_filename)
+        #self.board = pcbnew.LoadBoard(self.temp_filename)
+
+        logger.info(f'Loaded temp boardfile: {self.board.GetFileName()}')
+        logger.info("Get project schematics and layout data")
+        self.save_prjdata = PrjData(self.board)
+        # override project paths
+        self.save_prjdata.pcb_filename = os.path.abspath(board.GetFileName())
+        self.save_prjdata.sch_filename = self.save_prjdata.pcb_filename.replace(".kicad_pcb", ".kicad_sch")
+        self.save_prjdata.project_folder = os.path.dirname(self.save_prjdata.pcb_filename)
+
+        self.src_anchor_fp = self.save_prjdata.get_fp_by_ref(src_anchor_fp_ref)
 
     def save_layout(self, level, data_file, intersecting):
         logger.info("Saving layout for level: " + repr(level))
@@ -304,23 +315,23 @@ class SaveLayout:
 
         md5hash = hashlib.md5()
         for sch_file in list_of_sheet_files:
-            file_path = os.path.join(self.prjdata.project_folder, sch_file)
+            file_path = os.path.join(self.save_prjdata.project_folder, sch_file)
             md5hash = get_sch_hash(file_path, md5hash)
 
         hex_hash = md5hash.hexdigest()
 
         # get footprints on a sheet
-        src_fps = self.prjdata.get_footprints_on_sheet(level)
+        src_fps = self.save_prjdata.get_footprints_on_sheet(level)
         logging.info("Source footprints are: " + repr([x.ref for x in src_fps]))
 
         # get other footprints
-        other_fps = self.prjdata.get_footprints_not_on_sheet(level)
+        other_fps = self.save_prjdata.get_footprints_not_on_sheet(level)
 
         # get nets local to source footprints
-        local_nets = self.prjdata.get_local_nets(src_fps, other_fps)
+        local_nets = self.save_prjdata.get_local_nets(src_fps, other_fps)
 
         # get source bounding box
-        bounding_box = self.prjdata.get_footprints_bounding_box(src_fps)
+        bounding_box = self.save_prjdata.get_footprints_bounding_box(src_fps)
 
         logger.info("Removing everything else from the layout")
 
@@ -341,7 +352,8 @@ class SaveLayout:
 
         # save the layout
         logger.info("Saving layout in temporary file")
-        pcbnew.SaveBoard(self.temp_filename, self.board)
+        pcbnew.IO_MGR.Save(pcbnew.IO_MGR.KICAD_SEXP, self.temp_filename, self.board)
+        # pcbnew.SaveBoard(self.temp_filename, self.board)
         # load as text
         logger.info("Reading layout as text")
         with open(self.temp_filename, 'rb') as f:
@@ -359,7 +371,7 @@ class SaveLayout:
 
         # save all data
         level_saved = level_filename[len(level)-1]
-        data_to_save = LayoutData(VERSION, layout, hex_hash, self.prjdata.dict_of_sheets, local_nets, level_saved, level_filename)
+        data_to_save = LayoutData(VERSION, layout, hex_hash, self.save_prjdata.dict_of_sheets, local_nets, level_saved, level_filename)
         with open(data_file, 'wb') as f:
             pickle.dump(data_to_save, f, 0)
         logger.info("Successfully saved the layout")
@@ -441,8 +453,8 @@ class SaveLayout:
 
     def highlight_set_level(self, level, tracks, zones, text, drawings, containing):
         # find level bounding box
-        src_fps = self.prjdata.get_footprints_on_sheet(level)
-        fps_bb = self.prjdata.get_footprints_bounding_box(src_fps)
+        src_fps = self.src_prjdata.get_footprints_on_sheet(level)
+        fps_bb = self.src_prjdata.get_footprints_bounding_box(src_fps)
 
         fps = []
         # set highlight on all the footprints
@@ -488,7 +500,7 @@ class SaveLayout:
         # get_all tracks
         if exclusive_nets is None:
             exclusive_nets = []
-        all_tracks = self.board.GetTracks()
+        all_tracks = self.src_prjdata.board.GetTracks()
         tracks = []
         # keep only tracks that are within our bounding box
         for track in all_tracks:
@@ -508,8 +520,8 @@ class SaveLayout:
     def get_zones(self, bounding_box, containing):
         # get all zones
         all_zones = []
-        for zone_id in range(self.board.GetAreaCount()):
-            all_zones.append(self.board.GetArea(zone_id))
+        for zone_id in range(self.src_prjdata.board.GetAreaCount()):
+            all_zones.append(self.src_prjdata.board.GetArea(zone_id))
         # find all zones which are within the bounding box
         zones = []
         for zone in all_zones:
@@ -522,7 +534,7 @@ class SaveLayout:
     def get_text_items(self, bounding_box, containing):
         # get all text objects in bounding box
         all_text = []
-        for drawing in self.board.GetDrawings():
+        for drawing in self.src_prjdata.board.GetDrawings():
             if not isinstance(drawing, pcbnew.PCB_TEXT):
                 continue
             text_bb = drawing.GetBoundingBox()
@@ -537,7 +549,7 @@ class SaveLayout:
     def get_drawings(self, bounding_box, containing):
         # get all drawings in source bounding box
         all_drawings = []
-        for drawing in self.board.GetDrawings():
+        for drawing in self.src_prjdata.board.GetDrawings():
             if isinstance(drawing, pcbnew.PCB_TEXT):
                 # text items are handled separately
                 continue

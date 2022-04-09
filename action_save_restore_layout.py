@@ -28,6 +28,9 @@ import sys
 from .save_layout_dialog_GUI import SaveLayoutDialogGUI
 from .initial_dialog_GUI import InitialDialogGUI
 
+from .save_restore_layout import SaveLayout
+from .save_restore_layout import RestoreLayout
+
 
 class InitialDialog(InitialDialogGUI):
     SAVE = 1025
@@ -56,19 +59,14 @@ class SaveRestoreDialog(SaveLayoutDialogGUI):
         # DO NOTHING
         pass
 
-    def __init__(self, parent, levels, layout_saver, src_anchor_fp, board, logger):
+    def __init__(self, parent, layout_saver, logger):
         super(SaveRestoreDialog, self).__init__(parent)
 
         self.logger = logger
-        self.board = board
-        self.brd_fps = self.board.GetFootprints()
-        self.src_anchor_fp = src_anchor_fp
         self.save_layout = layout_saver
-        self.scr_fps = []
         self.list_levels.Clear()
-        self.list_levels.AppendItems(levels)
+        self.list_levels.AppendItems(layout_saver.src_anchor_fp.filename)
 
-        self.src_footprints = []
         self.hl_fps = []
         self.hl_items = []
 
@@ -80,21 +78,13 @@ class SaveRestoreDialog(SaveLayoutDialogGUI):
         pcbnew.Refresh()
 
         # highlight all footprints on selected level
-        (self.hl_fps, self.hl_items) = self.save_layout.highlight_set_level(self.src_anchor_fp.sheet_id[0:self.list_levels.GetSelection() + 1],
+        (self.hl_fps, self.hl_items) = self.save_layout.highlight_set_level(self.save_layout.src_anchor_fp.sheet_id[0:self.list_levels.GetSelection() + 1],
                                                                             True,
                                                                             True,
                                                                             True,
                                                                             True,
                                                                             False)
         pcbnew.Refresh()
-        event.Skip()
-
-    def on_ok(self, event):
-        pass
-        event.Skip()
-
-    def on_cancel(self, event):
-        pass
         event.Skip()
 
 
@@ -160,6 +150,7 @@ class SaveRestoreLayout(pcbnew.ActionPlugin):
 
         # if more or less than one show only a message box
         if len(selected_footprints) != 1:
+            logger.info("Plugin failed to run as more or less then 1 footprint selected")
             caption = 'Save/Restore Layout'
             message = "More or less than 1 footprint selected. Please select exactly one footprint " \
                       "and run the plugin again"
@@ -170,6 +161,7 @@ class SaveRestoreLayout(pcbnew.ActionPlugin):
 
         # this is the source anchor footprint reference
         anchor_fp_ref = selected_footprints[0]
+        logger.info("Anchor footprint reference is " + repr(anchor_fp_ref))
 
         # show initial dialog
         dlg = InitialDialog(self.frame)
@@ -180,7 +172,50 @@ class SaveRestoreLayout(pcbnew.ActionPlugin):
             src_anchor_fp_ref = anchor_fp_ref
             logger.info("Save layout chosen")
             # prepare the layout to save
-            pass
+            save_layout = SaveLayout(board, src_anchor_fp_ref)
+
+            # show the level GUI
+            main_dlg = SaveRestoreDialog(self.frame, save_layout, logger)
+            main_dlg.CenterOnParent()
+            if main_dlg.ShowModal():
+                # get the selected level
+                index = main_dlg.list_levels.GetSelection()
+                # if user did not select any level available cancel
+                if index < 0:
+                    logger.info("User failed to select hierarchy level to save")
+                    caption = 'Save/Restore Layout'
+                    message = "One hierarchical level has to be chosen"
+                    dlg = wx.MessageDialog(self.frame, message, caption, wx.OK | wx.ICON_INFORMATION)
+                    dlg.ShowModal()
+                    dlg.Destroy()
+                    logging.shutdown()
+                    main_dlg.Destroy()
+                    return
+
+                # Ask the user top specify file
+                wildcard = "Saved Layout Files (*.pckl)|*.pckl"
+                dlg = wx.FileDialog(self.frame, "Select a file", os.getcwd(),
+                                    save_layout.save_prjdata.sch_filename.strip(".kicad_sch"), wildcard,
+                                    wx.FD_SAVE)
+                res = dlg.ShowModal()
+                if res != wx.ID_OK:
+                    logger.info("No filename given. User canceled the plugin during file save selection")
+                    logging.shutdown()
+                    dlg.Destroy()
+                    main_dlg.Destroy()
+                    return
+                data_file = dlg.GetPath()
+                dlg.Destroy()
+
+                # run the plugin
+                logger.info("Saving the layout in " + repr(data_file) + " for level " + repr(index))
+                #save_layout.save_layout(save_layout.src_anchor_fp.sheet_id[0:index + 1], data_file, True)
+
+                pass
+            main_dlg.Destroy()
+            logging.shutdown()
+            return
+
         if res == InitialDialog.RESTORE:
             dst_anchor_fp_ref = anchor_fp_ref
             logger.info("Restore layout chosen")
@@ -195,8 +230,9 @@ class SaveRestoreLayout(pcbnew.ActionPlugin):
             layout_file = dlg.GetPath()
             dlg.Destroy()
 
+            # create an instance
             try:
-                restore_layout = save_restore_layout.RestoreLayout(board)
+                restore_layout = RestoreLayout(board, dst_anchor_fp_ref)
             except Exception:
                 logger.exception("Fatal error when creating an instance of RestoreLayout")
                 caption = 'Save/Restore Layout'
@@ -209,10 +245,9 @@ class SaveRestoreLayout(pcbnew.ActionPlugin):
                 logging.shutdown()
                 return
 
-            dst_anchor_fp = restore_layout.get_mod_by_ref(dst_anchor_fp_ref)
-
+            # run the main backend
             try:
-                restore_layout.restore_layout(dst_anchor_fp, layout_file)
+                restore_layout.restore_layout(layout_file)
             except (ValueError, LookupError) as error:
                 caption = 'Save/Restore Layout'
                 message = str(error)
@@ -220,6 +255,7 @@ class SaveRestoreLayout(pcbnew.ActionPlugin):
                 dlg.ShowModal()
                 dlg.Destroy()
                 logger.exception("Error when restoring layout")
+                logging.shutdown()
                 return
             except Exception:
                 logger.exception("Fatal error when restoring layout")
@@ -232,3 +268,5 @@ class SaveRestoreLayout(pcbnew.ActionPlugin):
                 dlg.Destroy()
                 logging.shutdown()
                 return
+            logging.shutdown()
+            return
