@@ -290,10 +290,8 @@ class SaveLayout:
             os.remove(self.temp_filename)
         logger.info(f'Saving board as tempfile: {self.temp_filename}')
         pcbnew.IO_MGR.Save(pcbnew.IO_MGR.KICAD_SEXP, self.temp_filename, board)
-        #pcbnew.SaveBoard(self.temp_filename, board)
 
         self.board = pcbnew.IO_MGR.Load(pcbnew.IO_MGR.KICAD_SEXP, self.temp_filename)
-        #self.board = pcbnew.LoadBoard(self.temp_filename)
 
         logger.info(f'Loaded temp boardfile: {self.board.GetFileName()}')
         logger.info("Get project schematics and layout data")
@@ -353,7 +351,7 @@ class SaveLayout:
         # save the layout
         logger.info("Saving layout in temporary file")
         pcbnew.IO_MGR.Save(pcbnew.IO_MGR.KICAD_SEXP, self.temp_filename, self.board)
-        # pcbnew.SaveBoard(self.temp_filename, self.board)
+
         # load as text
         logger.info("Reading layout as text")
         with open(self.temp_filename, 'rb') as f:
