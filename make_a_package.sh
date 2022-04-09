@@ -29,7 +29,8 @@ cp save_restore_layout_light.png plugins
 cp __init__.py plugins
 cp action_save_restore_layout.py plugins
 cp save_restore_layout.py plugins
-cp replicate_layout_GUI.py plugins
+cp save_layout_dialog_GUI.py plugins
+cp initial_dialog_GUI.py plugins
 cp version.txt plugins
 mkdir resources
 cp save_restore_layout.png resources/icon.png

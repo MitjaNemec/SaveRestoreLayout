@@ -2,7 +2,7 @@
     "$schema": "https://go.kicad.org/pcm/schemas/v1",
     "name": "Save/Restore Layout",
     "description": "The plugin can save and restore partial layout of footprints from one hierarchical sheet",
-    "description_full": "this plugin implements footprint modules or snippets feature. The plugin saves partial layout corresponding to footprints from one hirearchical sheet so that it can be resotred in other projects. All projects have to use the same hierarchical sheet schematics. If the schematics has been edited, te plugin will refuse to restore the layout. So in projects where you need to change the schematics slightly, first restore the layout and then change the schematics.",
+    "description_full": "This plugin implements footprint modules or snippets feature. The plugin saves partial layout corresponding to footprints from one hirearchical sheet so that it can be restored in other projects. All projects have to use the same hierarchical sheet schematics. If the schematics has been edited, the plugin will refuse to restore the layout. So in projects where you need to change the schematics slightly, first restore the layout and then change the schematics.",
     "identifier": "com.github.MitjaNemec.SaveRestoreLayout",
     "type": "plugin",
     "author": {
@@ -13,7 +13,7 @@
     },
     "license": "GPL-2.0",
     "resources": {
-        "homepage": "https://github.com/MitjaNemec/ReplicateLayout"
+        "homepage": "https://github.com/MitjaNemec/SaveRestoreLayout"
     },
     "tags": [
         "pcbnew",
@@ -26,7 +26,7 @@
             "status": "stable",
             "kicad_version": "6.0.3",
             "kicad_version_max": "6.1",
-            "download_url": "https://github.com/MitjaNemec/ReplicateLayout/releases/download/VERSION/ReplicateLayout-VERSION-pcm.zip",
+            "download_url": "https://github.com/MitjaNemec/SaveRestoreLayout/releases/download/VERSION/SaveRestoreLayout-VERSION-pcm.zip",
             "download_sha256": "SHA256",
             "download_size": DOWNLOAD_SIZE,
             "install_size": INSTALL_SIZE,
