@@ -79,13 +79,20 @@ class SaveRestoreDialog(SaveLayoutDialogGUI):
 
         # highlight all footprints on selected level
         (self.hl_fps, self.hl_items) = self.save_layout.highlight_set_level(self.save_layout.src_anchor_fp.sheet_id[0:self.list_levels.GetSelection() + 1],
-                                                                            True,
-                                                                            True,
-                                                                            True,
-                                                                            True,
-                                                                            False)
+                                                                            self.cb_tracks.GetValue(),
+                                                                            self.cb_zones.GetValue(),
+                                                                            self.cb_text.GetValue(),
+                                                                            self.cb_drawings.GetValue(),
+                                                                            self.cb_intersecting.GetValue())
         pcbnew.Refresh()
         event.Skip()
+
+    def __del__(self):
+        # clear highlight on all footprints on selected level
+        self.save_layout.highlight_clear_level(self.hl_fps, self.hl_items)
+        self.hl_fps = []
+        self.hl_items = []
+        pcbnew.Refresh()
 
 
 class SaveRestoreLayout(pcbnew.ActionPlugin):
@@ -177,7 +184,8 @@ class SaveRestoreLayout(pcbnew.ActionPlugin):
             # show the level GUI
             main_dlg = SaveRestoreDialog(self.frame, save_layout, logger)
             main_dlg.CenterOnParent()
-            if main_dlg.ShowModal():
+            action = main_dlg.ShowModal()
+            if action == wx.ID_OK:
                 # get the selected level
                 index = main_dlg.list_levels.GetSelection()
                 # if user did not select any level available cancel
@@ -209,9 +217,15 @@ class SaveRestoreLayout(pcbnew.ActionPlugin):
 
                 # run the plugin
                 logger.info("Saving the layout in " + repr(data_file) + " for level " + repr(index))
-                #save_layout.save_layout(save_layout.src_anchor_fp.sheet_id[0:index + 1], data_file, True)
+                save_layout.save_layout(save_layout.src_anchor_fp.sheet_id[0:index + 1], data_file,
+                                        main_dlg.cb_tracks.GetValue(),
+                                        main_dlg.cb_zones.GetValue(),
+                                        main_dlg.cb_text.GetValue(),
+                                        main_dlg.cb_drawings.GetValue(),
+                                        main_dlg.cb_intersecting.GetValue())
 
                 pass
+
             main_dlg.Destroy()
             logging.shutdown()
             return

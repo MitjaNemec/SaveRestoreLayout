@@ -303,7 +303,8 @@ class SaveLayout:
 
         self.src_anchor_fp = self.save_prjdata.get_fp_by_ref(src_anchor_fp_ref)
 
-    def save_layout(self, level, data_file, intersecting):
+    def save_layout(self, level, data_file,
+                    tracks, zones, text, drawings, intersecting):
         logger.info("Saving layout for level: " + repr(level))
         logger.info("Calculating hash of the layout schematics")
         # load schematics and calculate hash of schematics (you have to support nested hierarchy)
@@ -334,16 +335,16 @@ class SaveLayout:
         logger.info("Removing everything else from the layout")
 
         # remove text items
-        self.remove_text(bounding_box, not intersecting)
+        self.remove_text(bounding_box, not intersecting, text)
 
         # remove drawings
-        self.remove_drawings(bounding_box, not intersecting)
+        self.remove_drawings(bounding_box, not intersecting, drawings)
 
         # remove zones
-        self.remove_zones(bounding_box, not intersecting)
+        self.remove_zones(bounding_box, not intersecting, zones)
 
         # remove tracks
-        self.remove_tracks(bounding_box, not intersecting)
+        self.remove_tracks(bounding_box, not intersecting, tracks)
 
         # remove footprints
         self.remove_footprints(other_fps)
@@ -374,7 +375,7 @@ class SaveLayout:
             pickle.dump(data_to_save, f, 0)
         logger.info("Successfully saved the layout")
 
-    def remove_drawings(self, bounding_box, containing):
+    def remove_drawings(self, bounding_box, containing, remove_all=False):
         logger.info("Removing drawing")
         # remove all drawings outside of bounding box
         drawings_to_delete = []
@@ -382,16 +383,19 @@ class SaveLayout:
             if isinstance(drawing, pcbnew.PCB_TEXT):
                 continue
             drawing_bb = drawing.GetBoundingBox()
-            if containing:
-                if not bounding_box.Contains(drawing_bb):
-                    drawings_to_delete.append(drawing)
+            if remove_all:
+                drawings_to_delete.append(drawing)
             else:
-                if bounding_box.Intersects(drawing_bb):
-                    drawings_to_delete.append(drawing)
+                if containing:
+                    if not bounding_box.Contains(drawing_bb):
+                        drawings_to_delete.append(drawing)
+                else:
+                    if bounding_box.Intersects(drawing_bb):
+                        drawings_to_delete.append(drawing)
         for dwg in drawings_to_delete:
             self.board.RemoveNative(dwg)
 
-    def remove_text(self, bounding_box, containing):
+    def remove_text(self, bounding_box, containing, remove_all=False):
         logger.info("Removing text")
         # remove all text outside of bounding box
         text_to_delete = []
@@ -399,16 +403,19 @@ class SaveLayout:
             if not isinstance(text, pcbnew.PCB_TEXT):
                 continue
             text_bb = text.GetBoundingBox()
-            if containing:
-                if not bounding_box.Contains(text_bb):
-                    text_to_delete.append(text)
+            if remove_all:
+                text_to_delete.append(text)
             else:
-                if bounding_box.Intersects(text_bb):
-                    text_to_delete.append(text)
+                if containing:
+                    if not bounding_box.Contains(text_bb):
+                        text_to_delete.append(text)
+                else:
+                    if bounding_box.Intersects(text_bb):
+                        text_to_delete.append(text)
         for txt in text_to_delete:
             self.board.RemoveNative(txt)
 
-    def remove_zones(self, bounding_box, containing):
+    def remove_zones(self, bounding_box, containing, remove_all=False):
         logger.info("Removing zones")
         # remove all zones outisde of bounding box
         all_zones = []
@@ -417,14 +424,17 @@ class SaveLayout:
         # find all zones which are outside the source bounding box
         for zone in all_zones:
             zone_bb = zone.GetBoundingBox()
-            if containing:
-                if not bounding_box.Contains(zone_bb):
-                    self.board.RemoveNative(zone)
+            if remove_all:
+                self.board.RemoveNative(zone)
             else:
-                if not bounding_box.Intersects(zone_bb):
-                    self.board.RemoveNative(zone)
+                if containing:
+                    if not bounding_box.Contains(zone_bb):
+                        self.board.RemoveNative(zone)
+                else:
+                    if not bounding_box.Intersects(zone_bb):
+                        self.board.RemoveNative(zone)
 
-    def remove_tracks(self, bounding_box, containing):
+    def remove_tracks(self, bounding_box, containing, remove_all=False):
         logger.info("Removing tracks")
 
         logger.info("Bounding box points: "
@@ -435,12 +445,15 @@ class SaveLayout:
         for track in self.board.GetTracks():
             track_bb = track.GetBoundingBox()
             # if track is contained or intersecting the bounding box
-            if containing:
-                if not bounding_box.Contains(track_bb):
-                    tracks_to_delete.append(track)
+            if remove_all:
+                tracks_to_delete.append(track)
             else:
-                if not bounding_box.Intersects(track_bb):
-                    tracks_to_delete.append(track)
+                if containing:
+                    if not bounding_box.Contains(track_bb):
+                        tracks_to_delete.append(track)
+                else:
+                    if not bounding_box.Intersects(track_bb):
+                        tracks_to_delete.append(track)
         for trk in tracks_to_delete:
             self.board.RemoveNative(trk)
 
@@ -449,7 +462,7 @@ class SaveLayout:
         for fp in footprints:
             self.board.RemoveNative(fp.fp)
 
-    def highlight_set_level(self, level, tracks, zones, text, drawings, containing):
+    def highlight_set_level(self, level, tracks, zones, text, drawings, intersecting):
         # find level bounding box
         src_fps = self.src_prjdata.get_footprints_on_sheet(level)
         fps_bb = self.src_prjdata.get_footprints_bounding_box(src_fps)
@@ -463,22 +476,22 @@ class SaveLayout:
         # set highlight on other items
         items = []
         if tracks:
-            tracks = self.get_tracks(fps_bb, containing)
+            tracks = self.get_tracks(fps_bb, not intersecting)
             for t in tracks:
                 t.SetBrightened()
                 items.append(t)
         if zones:
-            zones = self.get_zones(fps_bb, containing)
+            zones = self.get_zones(fps_bb, not intersecting)
             for zone in zones:
                 zone.SetBrightened()
                 items.append(zone)
         if text:
-            text_items = self.get_text_items(fps_bb, containing)
+            text_items = self.get_text_items(fps_bb, not intersecting)
             for t_i in text_items:
                 t_i.SetBrightened()
                 items.append(t_i)
         if drawings:
-            dwgs = self.get_drawings(fps_bb, containing)
+            dwgs = self.get_drawings(fps_bb, not intersecting)
             for dw in dwgs:
                 dw.SetBrightened()
                 items.append(dw)
@@ -649,7 +662,7 @@ class RestoreLayout:
             f.write(data_saved.layout.encode('utf-8'))
 
         # restore layout data
-        saved_board = pcbnew.LoadBoard(temp_filename)
+        saved_board = pcbnew.IO_MGR.Load(pcbnew.IO_MGR.KICAD_SEXP, temp_filename)
         # delete temporary file
         os.remove(temp_filename)
 

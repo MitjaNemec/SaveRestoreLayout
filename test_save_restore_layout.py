@@ -25,7 +25,8 @@ class TestSave(unittest.TestCase):
         level = 1
 
         data_file = os.path.join(prj_dir, 'source_layout_test_shallow.pckl')
-        save_layout.save_layout(save_layout.src_anchor_fp.sheet_id[0:level + 1], data_file, True)
+        save_layout.save_layout(save_layout.src_anchor_fp.sheet_id[0:level + 1], data_file,
+                                True, True, True, True, True)
 
     def test_save_deep(self):
         prj_dir = os.path.normpath(os.path.dirname(os.path.join(os.path.dirname(os.path.realpath(__file__)),
@@ -40,7 +41,8 @@ class TestSave(unittest.TestCase):
         level = 0
 
         data_file = os.path.join(prj_dir, 'source_layout_test_deep.pckl')
-        save_layout.save_layout(save_layout.src_anchor_fp.sheet_id[0:level + 1], data_file, True)
+        save_layout.save_layout(save_layout.src_anchor_fp.sheet_id[0:level + 1], data_file,
+                                True, True, True, True, True)
 
     def test_restore_shallow_different_level(self):
         prj_dir = os.path.normpath(os.path.dirname(os.path.join(os.path.dirname(os.path.realpath(__file__)),
