@@ -335,16 +335,16 @@ class SaveLayout:
         logger.info("Removing everything else from the layout")
 
         # remove text items
-        self.remove_text(bounding_box, not intersecting, text)
+        self.remove_text(bounding_box, not intersecting, not text)
 
         # remove drawings
-        self.remove_drawings(bounding_box, not intersecting, drawings)
+        self.remove_drawings(bounding_box, not intersecting, not drawings)
 
         # remove zones
-        self.remove_zones(bounding_box, not intersecting, zones)
+        self.remove_zones(bounding_box, not intersecting, not zones)
 
         # remove tracks
-        self.remove_tracks(bounding_box, not intersecting, tracks)
+        self.remove_tracks(bounding_box, not intersecting, not tracks)
 
         # remove footprints
         self.remove_footprints(other_fps)
