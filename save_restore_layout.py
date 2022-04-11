@@ -29,11 +29,12 @@ import tempfile
 import hashlib
 import pickle
 
-VERSION = 6
+with open(os.path.join(os.path.join(os.path.dirname(os.path.abspath(__file__))), 'version.txt')) as fp:
+    VERSION = fp.readline()
 
 Footprint = namedtuple('Footprint', ['ref', 'fp', 'fp_id', 'sheet_id', 'filename'])
 LayoutData = namedtuple('LayoutData', ['version', 'layout', 'hash', 'dict_of_sheets', 'list_of_local_nets',
-                                       'level', 'level_filename'])
+                                       'level', 'level_filename', 'layer_count'])
 logger = logging.getLogger(__name__)
 
 
@@ -362,15 +363,17 @@ class SaveLayout:
         os.remove(self.temp_filename)
 
         logger.info("Saving layout data")
-        # level_filename, level
-
-        level_filename = [self.src_anchor_fp.filename[self.src_anchor_fp.sheet_id.index(x)] for x in level]
-        # index = self.src_anchor_fp.sheet_id.index(level[0])
-        # level_filename = self.src_anchor_fp.filename[index:]
 
         # save all data
+        level_filename = [self.src_anchor_fp.filename[self.src_anchor_fp.sheet_id.index(x)] for x in level]
         level_saved = level_filename[len(level)-1]
-        data_to_save = LayoutData(VERSION, layout, hex_hash, self.save_prjdata.dict_of_sheets, local_nets, level_saved, level_filename)
+        copper_layer_count = self.save_prjdata.board.GetCopperLayerCount()
+        data_to_save = LayoutData(VERSION,
+                                  layout,
+                                  hex_hash,
+                                  self.save_prjdata.dict_of_sheets,
+                                  local_nets, level_saved, level_filename,
+                                  copper_layer_count)
         with open(data_file, 'wb') as f:
             pickle.dump(data_to_save, f, 0)
         logger.info("Successfully saved the layout")
@@ -608,8 +611,18 @@ class RestoreLayout:
             data_saved = pickle.load(f)
 
         # check if version matches
-        if data_saved.version != VERSION:
-            raise LookupError("Layout was saved with different version of the plugin. This is not supported")
+        saved_version = int(data_saved.version.replace(".", ""))
+        current_version = int(VERSION.replace(".", ""))
+
+        if saved_version > current_version:
+            raise LookupError("Layout was saved with newer version of the plugin. This is not supported.")
+
+        # check layer count
+        if hasattr(data_saved, 'layer_count'):
+            if data_saved.layer_count < self.prj_data.board.GetCopperLayerCount():
+                raise LookupError("Target board has less layers than layers saved. This is not supported.")
+        else:
+            logger.info("Saved layout does not have copper layer count saved. Might result in unhandled issues.")
 
         # get saved hierarchy
         source_level_filename = data_saved.level_filename
