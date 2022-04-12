@@ -22,6 +22,36 @@
     ],
     "versions": [
         {
+            "version": "1.0.0",
+            "status": "stable",
+            "kicad_version": "6.0.3",
+            "kicad_version_max": "6.1",
+            "download_url": "https://github.com/MitjaNemec/SaveRestoreLayout/releases/download/1.0.0/SaveRestoreLayout-1.0.0-pcm.zip",
+            "download_sha256": "253508db5dcb947598d65610f9bfacc77c9841ab6bde06fa3265948c3a6d85cd",
+            "download_size": 27343,
+            "install_size": 77829,
+            "platforms": [
+                "linux",
+                "macos",
+                "windows"
+            ]
+        },
+        {
+            "version": "1.1.0",
+            "status": "stable",
+            "kicad_version": "6.0.3",
+            "kicad_version_max": "6.1",
+            "download_url": "https://github.com/MitjaNemec/SaveRestoreLayout/releases/download/1.1.0/SaveRestoreLayout-1.1.0-pcm.zip",
+            "download_sha256": "0195aeffbc095e0f14e08ffe9dd266a23c3e9b3ac97e2efba6775263f8183729",
+            "download_size": 27510,
+            "install_size": 78587,
+            "platforms": [
+                "linux",
+                "macos",
+                "windows"
+            ]
+        },
+        {
             "version": "VERSION",
             "status": "stable",
             "kicad_version": "6.0.3",
