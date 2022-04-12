@@ -382,7 +382,8 @@ class SaveLayout:
         logger.info("Removing drawing")
         # remove all drawings outside of bounding box
         drawings_to_delete = []
-        for drawing in self.board.GetDrawings():
+        all_drawings = self.board.GetDrawings()
+        for drawing in all_drawings:
             if isinstance(drawing, pcbnew.PCB_TEXT):
                 continue
             drawing_bb = drawing.GetBoundingBox()
@@ -393,7 +394,7 @@ class SaveLayout:
                     if not bounding_box.Contains(drawing_bb):
                         drawings_to_delete.append(drawing)
                 else:
-                    if bounding_box.Intersects(drawing_bb):
+                    if not bounding_box.Intersects(drawing_bb):
                         drawings_to_delete.append(drawing)
         for dwg in drawings_to_delete:
             self.board.RemoveNative(dwg)
@@ -402,7 +403,8 @@ class SaveLayout:
         logger.info("Removing text")
         # remove all text outside of bounding box
         text_to_delete = []
-        for text in self.board.GetDrawings():
+        all_text_items = self.board.GetDrawings()
+        for text in all_text_items:
             if not isinstance(text, pcbnew.PCB_TEXT):
                 continue
             text_bb = text.GetBoundingBox()
@@ -413,7 +415,7 @@ class SaveLayout:
                     if not bounding_box.Contains(text_bb):
                         text_to_delete.append(text)
                 else:
-                    if bounding_box.Intersects(text_bb):
+                    if not bounding_box.Intersects(text_bb):
                         text_to_delete.append(text)
         for txt in text_to_delete:
             self.board.RemoveNative(txt)

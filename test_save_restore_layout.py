@@ -18,7 +18,7 @@ class TestSave(unittest.TestCase):
         source_file = os.path.join(prj_dir, 'save_restore_source_project.kicad_pcb')
 
         board = pcbnew.LoadBoard(source_file)
-        src_anchor_fp_ref = 'L301'
+        src_anchor_fp_ref = 'L401'
         save_layout = SaveLayout(board, src_anchor_fp_ref)
 
         # get the level from user
@@ -34,7 +34,7 @@ class TestSave(unittest.TestCase):
         source_file = os.path.join(prj_dir, 'save_restore_source_project.kicad_pcb')
 
         board = pcbnew.LoadBoard(source_file)
-        src_anchor_fp_ref = 'L301'
+        src_anchor_fp_ref = 'L401'
         save_layout = SaveLayout(board, src_anchor_fp_ref)
 
         # get the level from user
