@@ -52,6 +52,21 @@
             ]
         },
         {
+            "version": "1.1.1",
+            "status": "stable",
+            "kicad_version": "6.0.3",
+            "kicad_version_max": "6.1",
+            "download_url": "https://github.com/MitjaNemec/SaveRestoreLayout/releases/download/1.1.1/SaveRestoreLayout-1.1.1-pcm.zip",
+            "download_sha256": "3420851c7cbb318927a0e95053489f9b0aa47df4180100a2928af6be5948c6ad",
+            "download_size": 27526,
+            "install_size": 78671,
+            "platforms": [
+                "linux",
+                "macos",
+                "windows"
+            ]
+        },
+        {
             "version": "VERSION",
             "status": "stable",
             "kicad_version": "6.0.3",
