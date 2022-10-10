@@ -137,8 +137,14 @@ class PrjData:
         self.dict_of_sheets = {}
         for fp in footprints:
             sheet_id = self.get_sheet_id(fp)
-            sheet_file = fp.GetProperty('Sheetfile')
-            sheet_name = fp.GetProperty('Sheetname')
+            try:
+                sheet_file = fp.GetProperty('Sheetfile')
+            except:
+                sheet_file = None
+            try:
+                sheet_name = fp.GetProperty('Sheetname')
+            except:
+                sheet_name = None
             # footprint is in the schematics and has Sheetfile property
             if sheet_file and sheet_id:
                 self.dict_of_sheets[sheet_id] = [sheet_name, sheet_file]
