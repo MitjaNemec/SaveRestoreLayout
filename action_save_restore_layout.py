@@ -27,9 +27,19 @@ import sys
 
 from .save_layout_dialog_GUI import SaveLayoutDialogGUI
 from .initial_dialog_GUI import InitialDialogGUI
+from .error_dialog_GUI import ErrorDialogGUI
 
 from .save_restore_layout import SaveLayout
 from .save_restore_layout import RestoreLayout
+
+
+class ErrorDialog(ErrorDialogGUI):
+    def SetSizeHints(self, sz1, sz2):
+        # DO NOTHING
+        pass
+
+    def __init__(self, parent):
+        super(ErrorDialog, self).__init__(parent)
 
 
 class InitialDialog(InitialDialogGUI):
@@ -183,16 +193,11 @@ class SaveRestoreLayout(pcbnew.ActionPlugin):
                 save_layout = SaveLayout(board, src_anchor_fp_ref)
             except Exception:
                 logger.exception("Fatal error when creating an instance of SaveLayout")
-                caption = 'Save/Restore Layout'
-                message = "Fatal error when creating an instance of SaveLayout.\n" \
-                          + "You can raise an issue on GiHub page.\n" \
-                          + "Please attach the save_restore_layout.log which you should find in the project folder."
-                dlg = wx.MessageDialog(self.frame, message, caption, wx.OK | wx.ICON_ERROR)
-                dlg.ShowModal()
-                dlg.Destroy()
+                e_dlg = ErrorDialog(self.frame)
+                e_dlg.ShowModal()
+                e_dlg.Destroy()
                 logging.shutdown()
                 return
-
 
             # show the level GUI
             main_dlg = SaveRestoreDialog(self.frame, save_layout, logger)
@@ -239,13 +244,9 @@ class SaveRestoreLayout(pcbnew.ActionPlugin):
                                             main_dlg.cb_intersecting.GetValue())
                 except Exception:
                     logger.exception("Fatal error running SaveLayout")
-                    caption = 'Save/Restore Layout'
-                    message = "Fatal error when running SaveLayout.\n" \
-                              + "You can raise an issue on GiHub page.\n" \
-                              + "Please attach the save_restore_layout.log which you should find in the project folder."
-                    dlg = wx.MessageDialog(self.frame, message, caption, wx.OK | wx.ICON_ERROR)
-                    dlg.ShowModal()
-                    dlg.Destroy()
+                    e_dlg = ErrorDialog(self.frame)
+                    e_dlg.ShowModal()
+                    e_dlg.Destroy()
                     logging.shutdown()
                     return
 

@@ -8,6 +8,7 @@ inkscape save_restore_layout_light.png -w 64 -h 64 -o save_restore_layout.png
 # refresh the GUI design
 ~/WxFormBuilder/bin/wxformbuilder -g initial_dialog_GUI.fbp
 ~/WxFormBuilder/bin/wxformbuilder -g save_layout_dialog_GUI.fbp
+~/WxFormBuilder/bin/wxformbuilder -g error_dialog_GUI.fbp
 
 # grab version and parse it into metadata.json
 cp metadata_source.json metadata_package.json
@@ -30,6 +31,7 @@ cp __init__.py plugins
 cp action_save_restore_layout.py plugins
 cp save_restore_layout.py plugins
 cp save_layout_dialog_GUI.py plugins
+cp error_dialog_GUI.py plugins
 cp initial_dialog_GUI.py plugins
 cp version.txt plugins
 mkdir resources
