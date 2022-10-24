@@ -179,7 +179,20 @@ class SaveRestoreLayout(pcbnew.ActionPlugin):
             src_anchor_fp_ref = anchor_fp_ref
             logger.info("Save layout chosen")
             # prepare the layout to save
-            save_layout = SaveLayout(board, src_anchor_fp_ref)
+            try:
+                save_layout = SaveLayout(board, src_anchor_fp_ref)
+            except Exception:
+                logger.exception("Fatal error when creating an instance of SaveLayout")
+                caption = 'Save/Restore Layout'
+                message = "Fatal error when creating an instance of SaveLayout.\n" \
+                          + "You can raise an issue on GiHub page.\n" \
+                          + "Please attach the save_restore_layout.log which you should find in the project folder."
+                dlg = wx.MessageDialog(self.frame, message, caption, wx.OK | wx.ICON_ERROR)
+                dlg.ShowModal()
+                dlg.Destroy()
+                logging.shutdown()
+                return
+
 
             # show the level GUI
             main_dlg = SaveRestoreDialog(self.frame, save_layout, logger)
@@ -217,12 +230,24 @@ class SaveRestoreLayout(pcbnew.ActionPlugin):
 
                 # run the plugin
                 logger.info("Saving the layout in " + repr(data_file) + " for level " + repr(index))
-                save_layout.save_layout(save_layout.src_anchor_fp.sheet_id[0:index + 1], data_file,
-                                        main_dlg.cb_tracks.GetValue(),
-                                        main_dlg.cb_zones.GetValue(),
-                                        main_dlg.cb_text.GetValue(),
-                                        main_dlg.cb_drawings.GetValue(),
-                                        main_dlg.cb_intersecting.GetValue())
+                try:
+                    save_layout.save_layout(save_layout.src_anchor_fp.sheet_id[0:index + 1], data_file,
+                                            main_dlg.cb_tracks.GetValue(),
+                                            main_dlg.cb_zones.GetValue(),
+                                            main_dlg.cb_text.GetValue(),
+                                            main_dlg.cb_drawings.GetValue(),
+                                            main_dlg.cb_intersecting.GetValue())
+                except Exception:
+                    logger.exception("Fatal error running SaveLayout")
+                    caption = 'Save/Restore Layout'
+                    message = "Fatal error when running SaveLayout.\n" \
+                              + "You can raise an issue on GiHub page.\n" \
+                              + "Please attach the save_restore_layout.log which you should find in the project folder."
+                    dlg = wx.MessageDialog(self.frame, message, caption, wx.OK | wx.ICON_ERROR)
+                    dlg.ShowModal()
+                    dlg.Destroy()
+                    logging.shutdown()
+                    return
 
                 pass
 
