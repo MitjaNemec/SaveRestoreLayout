@@ -1,9 +1,9 @@
 #! /bin/bash
 
 # refresh derived resources
-inkscape save_restore_layout_dark.svg -w 24 -h 24 -o save_restore_layout_dark.png
-inkscape save_restore_layout_light.svg -w 24 -h 24 -o save_restore_layout_light.png
-inkscape save_restore_layout_light.png -w 64 -h 64 -o save_restore_layout.png
+#inkscape save_restore_layout_dark.svg -w 24 -h 24 -o save_restore_layout_dark.png
+#inkscape save_restore_layout_light.svg -w 24 -h 24 -o save_restore_layout_light.png
+#inkscape save_restore_layout_light.png -w 64 -h 64 -o save_restore_layout.png
 
 # refresh the GUI design
 wxformbuilder -g initial_dialog_GUI.fbp
