@@ -205,9 +205,9 @@ class SaveRestoreLayout(pcbnew.ActionPlugin):
             action = main_dlg.ShowModal()
             if action == wx.ID_OK:
                 # get the selected level
-                index = main_dlg.list_levels.GetSelection()
+                selected_level = main_dlg.list_levels.GetSelection()
                 # if user did not select any level available cancel
-                if index < 0:
+                if selected_level < 0:
                     logger.info("User failed to select hierarchy level to save")
                     caption = 'Save/Restore Layout'
                     message = "One hierarchical level has to be chosen"
@@ -221,7 +221,7 @@ class SaveRestoreLayout(pcbnew.ActionPlugin):
                 # Ask the user top specify file
                 wildcard = "Saved Layout Files (*.pckl)|*.pckl"
                 dlg = wx.FileDialog(self.frame, "Select a file", os.getcwd(),
-                                    save_layout.save_prjdata.sch_filename.strip(".kicad_sch"), wildcard,
+                                    save_layout.src_anchor_fp.filename[selected_level].strip(".kicad_sch"), wildcard,
                                     wx.FD_SAVE)
                 res = dlg.ShowModal()
                 if res != wx.ID_OK:
@@ -234,9 +234,9 @@ class SaveRestoreLayout(pcbnew.ActionPlugin):
                 dlg.Destroy()
 
                 # run the plugin
-                logger.info("Saving the layout in " + repr(data_file) + " for level " + repr(index))
+                logger.info("Saving the layout in " + repr(data_file) + " for level " + repr(selected_level))
                 try:
-                    save_layout.save_layout(save_layout.src_anchor_fp.sheet_id[0:index + 1], data_file,
+                    save_layout.save_layout(save_layout.src_anchor_fp.sheet_id[0:selected_level + 1], data_file,
                                             main_dlg.cb_tracks.GetValue(),
                                             main_dlg.cb_zones.GetValue(),
                                             main_dlg.cb_text.GetValue(),
