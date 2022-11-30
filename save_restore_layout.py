@@ -110,7 +110,7 @@ def get_footprint_text_items(footprint):
 
 
 class PrjData:
-    def __init__(self, board):
+    def __init__(self, board, dont_parse_schematics=False):
         self.board = board
 
         self.level = None
@@ -135,7 +135,14 @@ class PrjData:
 
         # get dict_of_sheets from layout data only (through footprint Sheetfile and Sheetname properties)
         self.dict_of_sheets = {}
+        unique_sheet_ids = set()
         for fp in footprints:
+            # construct a set of unique sheets from footprint properties
+            path = fp.GetPath().AsString().upper().replace('00000000-0000-0000-0000-0000', '').split("/")
+            sheet_path = path[0:-1]
+            for x in sheet_path:
+                unique_sheet_ids.add(x)
+
             sheet_id = self.get_sheet_id(fp)
             try:
                 sheet_file = fp.GetProperty('Sheetfile')
@@ -158,6 +165,16 @@ class PrjData:
             else:
                 logger.debug("Footprint " + fp.GetReference() + " is only in layout")
 
+        # catch corner cases with nested hierarchy, where some hierarchical pages don't have any footprints
+        unique_sheet_ids.remove("")
+        if (len(unique_sheet_ids) > len(self.dict_of_sheets)) and not dont_parse_schematics:
+            # open root schematics file and parse for other schematics files
+            # This might be prone to errors regarding path discovery
+            # thus it is used only in corner cases
+            schematic_found = {}
+            self.parse_schematic_files(self.sch_filename, schematic_found)
+            self.dict_of_sheets = schematic_found
+
         # construct a list of all the footprints
         for fp in footprints:
             fp_tuple = Footprint(fp=fp,
@@ -168,6 +185,29 @@ class PrjData:
             self.footprints.append(fp_tuple)
         pass
         # TODO check if there is any other footprint fit same ID as anchor footprint
+
+    def parse_schematic_files(self, filename, dict_of_sheets):
+        with open(filename) as f:
+            contents = f.read().split("\n")
+        # find (sheet (at and then look in next few lines for new schematics file
+        for i in range(len(contents)):
+            line = contents[i]
+            if "(sheet (at" in line:
+                sheetname = ""
+                sheetfile = ""
+                sheet_id = ""
+                for j in range(i,i+10):
+                    if "(uuid " in contents[j]:
+                        sheet_id = contents[j].lstrip("(uuid ").rstrip(")")
+                    if "(property \"Sheet name\"" in contents[j]:
+                        sheetname = contents[j].lstrip("(property \"Sheet name\"").split()[0].replace("\"", "")
+                    if "(property \"Sheet file\"" in contents[j]:
+                        sheetfile = contents[j].lstrip("(property \"Sheet file\"").split()[0].replace("\"", "")
+                # here I should find all sheet data
+                dict_of_sheets[sheet_id] = [sheetname, sheetfile]
+                # open a newfound file and look for nested sheets
+                self.parse_schematic_files(sheetfile, dict_of_sheets)
+        return
 
     def get_fp_by_ref(self, ref):
         for fp in self.footprints:
@@ -689,7 +729,7 @@ class RestoreLayout:
 
         # get layout data from saved board
         logger.info("Get layout data from saved board")
-        saved_layout = PrjData(saved_board)
+        saved_layout = PrjData(saved_board, dont_parse_schematics=True)
 
         saved_fps = saved_layout.footprints
 
@@ -1017,7 +1057,7 @@ class RestoreLayout:
 
                 # make a duplicate, move it, rotate it, select proper net and add it to the board
                 new_track = track.Duplicate()
-                new_track.SetNetCode(to_net_code)
+                new_track.SetNetCode(to_net_code, True)
                 new_track.SetNet(to_net_item)
                 new_track.Move(move_vector)
                 if src_anchor_fp.fp.IsFlipped() != dst_anchor_fp.fp.IsFlipped():
@@ -1081,7 +1121,7 @@ class RestoreLayout:
             # make a duplicate, move it, rotate it, select proper net and add it to the board
             new_zone = zone.Duplicate()
             new_zone.Move(move_vector)
-            new_zone.SetNetCode(to_net_code)
+            new_zone.SetNetCode(to_net_code, True)
             new_zone.SetNet(to_net_item)
             if src_anchor_fp.fp.IsFlipped() != dst_anchor_fp.fp.IsFlipped():
                 new_zone.Flip(dst_anchor_fp_position, False)
