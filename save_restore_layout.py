@@ -748,24 +748,28 @@ class RestoreLayout:
         # find net pairs
         net_pairs = self.get_net_pairs(footprints_to_place, saved_fps)
 
+        # Create Group for placed components
+        layout_group = pcbnew.PCB_GROUP(self.board)
+        self.board.Add(layout_group)
+
         # replicate modules
         src_anchor_fp = saved_fps[footprints_to_place.index(self.dst_anchor_fp)]
-        self.replicate_footprints(src_anchor_fp, saved_fps, self.dst_anchor_fp, footprints_to_place)
+        self.replicate_footprints(src_anchor_fp, saved_fps, self.dst_anchor_fp, footprints_to_place, layout_group)
 
         # replicate tracks
-        self.replicate_tracks(src_anchor_fp, saved_board.GetTracks(), self.dst_anchor_fp, net_pairs)
+        self.replicate_tracks(src_anchor_fp, saved_board.GetTracks(), self.dst_anchor_fp, net_pairs, layout_group)
 
         # replicate zones
         src_zones = [saved_board.GetArea(zone_id) for zone_id in range(saved_board.GetAreaCount()) ]
-        self.replicate_zones(src_anchor_fp, src_zones, self.dst_anchor_fp, net_pairs)
+        self.replicate_zones(src_anchor_fp, src_zones, self.dst_anchor_fp, net_pairs, layout_group)
 
         # replicate text
         src_text = [item for item in saved_board.GetDrawings() if isinstance(item, pcbnew.PCB_TEXT)]
-        self.replicate_text(src_anchor_fp, src_text, self.dst_anchor_fp)
+        self.replicate_text(src_anchor_fp, src_text, self.dst_anchor_fp, layout_group)
 
         # replicate drawings
         source_dwgs = [item for item in saved_board.GetDrawings() if not isinstance(item, pcbnew.PCB_TEXT)]
-        self.replicate_drawings(src_anchor_fp, source_dwgs, self.dst_anchor_fp)
+        self.replicate_drawings(src_anchor_fp, source_dwgs, self.dst_anchor_fp, layout_group)
         pass
 
     @staticmethod
@@ -867,7 +871,7 @@ class RestoreLayout:
         return net_pairs_clean, net_dict
 
     @staticmethod
-    def replicate_footprints(src_anchor_fp, src_fps, dst_anchor_fp, dst_fps):
+    def replicate_footprints(src_anchor_fp, src_fps, dst_anchor_fp, dst_fps, layout_group):
         logger.info("Replicating footprints")
 
         dst_anchor_fp_angle = dst_anchor_fp.fp.GetOrientationDegrees()
@@ -1022,9 +1026,12 @@ class RestoreLayout:
                 dst_text.SetHorizJustify(src_text.GetHorizJustify())
                 dst_text.SetVertJustify(src_text.GetVertJustify())
                 dst_text.SetKeepUpright(src_text.IsKeepUpright())
-                dst_text.SetVisible(src_text.IsVisible())
+                dst_text.SetVisible(src_text.IsVisible())             
+            # Add Footprint to group
+            logger.info(dst_fp)
+            layout_group.AddItem(dst_fp.fp)                                                                    
 
-    def replicate_tracks(self, src_anchor_fp, src_tracks, dst_anchor_fp, net_pairs):
+    def replicate_tracks(self, src_anchor_fp, src_tracks, dst_anchor_fp, net_pairs, layout_group):
         logger.info("Replicating tracks")
 
         # get anchor footprint
@@ -1071,8 +1078,10 @@ class RestoreLayout:
                     pass
 
                 self.board.Add(new_track)
+                #includes Tracks in Group
+                layout_group.AddItem(new_track)                                           
 
-    def replicate_zones(self, src_anchor_fp, src_zones, dst_anchor_fp, net_pairs):
+    def replicate_zones(self, src_anchor_fp, src_zones, dst_anchor_fp, net_pairs, layout_group):
         """ method which replicates zones"""
         logger.info("Replicating zones")
 
@@ -1132,8 +1141,10 @@ class RestoreLayout:
             else:
                 new_zone.Rotate(dst_anchor_fp_position, delta_orientation)
             self.board.Add(new_zone)
+            # Add Zone to Group
+            layout_group.AddItem(new_zone)                                                      
 
-    def replicate_text(self, src_anchor_fp, src_text, dst_anchor_fp):
+    def replicate_text(self, src_anchor_fp, src_text, dst_anchor_fp, layout_group):
         logger.info("Replicating text")
 
         # get anchor footprint
@@ -1162,8 +1173,10 @@ class RestoreLayout:
                 new_text.Rotate(dst_anchor_fp_position, delta_orientation)
 
             self.board.Add(new_text)
+            #Add text to group
+            layout_group.AddItem(layout_group)                                                              
 
-    def replicate_drawings(self, src_anchor_fp, src_drawings, dst_anchor_fp):
+    def replicate_drawings(self, src_anchor_fp, src_drawings, dst_anchor_fp, layout_group):
         logger.info("Replicating drawings")
 
         # get anchor footprint
@@ -1195,3 +1208,5 @@ class RestoreLayout:
                 new_drawing.Rotate(dst_anchor_fp_position, delta_orientation)
 
             self.board.Add(new_drawing)
+            #Add drawing to Group
+            layout_group.AddItem(new_drawing)                                 
