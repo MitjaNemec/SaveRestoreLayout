@@ -26,6 +26,7 @@ import logging
 import sys
 
 from .save_layout_dialog_GUI import SaveLayoutDialogGUI
+from .restore_layout_dialog_GUI import RestoreLayoutDialogGUI
 from .initial_dialog_GUI import InitialDialogGUI
 from .error_dialog_GUI import ErrorDialogGUI
 
@@ -64,13 +65,25 @@ class InitialDialog(InitialDialogGUI):
         self.EndModal(InitialDialog.RESTORE)
 
 
-class SaveRestoreDialog(SaveLayoutDialogGUI):
+class RestoreDialog(RestoreLayoutDialogGUI):
+    def SetSizeHints(self, sz1, sz2):
+        # DO NOTHING
+        pass
+
+    def __init__(self, parent, logger):
+        self.logger = logger
+        self.logger.info("Initialization start")
+        super(RestoreDialog, self).__init__(parent)
+        self.logger.info(f"Initialization done {self.m_staticText3.GetLabelText()}")
+
+
+class SaveDialog(SaveLayoutDialogGUI):
     def SetSizeHints(self, sz1, sz2):
         # DO NOTHING
         pass
 
     def __init__(self, parent, layout_saver, logger):
-        super(SaveRestoreDialog, self).__init__(parent)
+        super(SaveDialog, self).__init__(parent)
 
         self.logger = logger
         self.save_layout = layout_saver
@@ -200,7 +213,7 @@ class SaveRestoreLayout(pcbnew.ActionPlugin):
                 return
 
             # show the level GUI
-            main_dlg = SaveRestoreDialog(self.frame, save_layout, logger)
+            main_dlg = SaveDialog(self.frame, save_layout, logger)
             main_dlg.CenterOnParent()
             action = main_dlg.ShowModal()
             if action == wx.ID_OK:
@@ -270,9 +283,18 @@ class SaveRestoreLayout(pcbnew.ActionPlugin):
             layout_file = dlg.GetPath()
             dlg.Destroy()
 
+            # ask the user to optionally specify whathere the target layout elements should be put in the group
+            main_dlg = RestoreDialog(self.frame, logger)
+            main_dlg.CenterOnParent()
+            action = main_dlg.ShowModal()
+            if action == wx.ID_OK:
+                group_name = main_dlg.lbl_group_name.GetValue()
+                if group_name == "":
+                    group_name = None
+
             # create an instance
             try:
-                restore_layout = RestoreLayout(board, dst_anchor_fp_ref)
+                restore_layout = RestoreLayout(board, dst_anchor_fp_ref, group_name)
             except Exception:
                 logger.exception("Fatal error when creating an instance of RestoreLayout")
                 caption = 'Save/Restore Layout'
