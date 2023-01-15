@@ -8,6 +8,7 @@
 # refresh the GUI design
 wxformbuilder -g initial_dialog_GUI.fbp
 wxformbuilder -g save_layout_dialog_GUI.fbp
+wxformbuilder -g restore_layout_dialog_GUI.fbp
 wxformbuilder -g error_dialog_GUI.fbp
 
 # grab version and parse it into metadata.json
@@ -31,6 +32,7 @@ cp __init__.py plugins
 cp action_save_restore_layout.py plugins
 cp save_restore_layout.py plugins
 cp save_layout_dialog_GUI.py plugins
+cp restore_layout_dialog_GUI.py plugins
 cp error_dialog_GUI.py plugins
 cp initial_dialog_GUI.py plugins
 cp version.txt plugins
