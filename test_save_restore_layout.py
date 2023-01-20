@@ -53,7 +53,7 @@ class TestSave(unittest.TestCase):
         destination_file = os.path.join(prj_dir, 'save_restore_destination_project.kicad_pcb')
         board = pcbnew.LoadBoard(destination_file)
         dst_anchor_fp_ref = 'L201'
-        restore_layout = RestoreLayout(board, dst_anchor_fp_ref)
+        restore_layout = RestoreLayout(board, dst_anchor_fp_ref, "group")
 
         restore_layout.restore_layout(data_file)
 
@@ -68,7 +68,7 @@ class TestSave(unittest.TestCase):
         destination_file = os.path.join(prj_dir, 'save_restore_destination_project.kicad_pcb')
         board = pcbnew.LoadBoard(destination_file)
         dst_anchor_fp_ref = 'L401'
-        restore_layout = RestoreLayout(board, dst_anchor_fp_ref)
+        restore_layout = RestoreLayout(board, dst_anchor_fp_ref, "group")
 
         restore_layout.restore_layout(data_file)
 
@@ -83,7 +83,7 @@ class TestSave(unittest.TestCase):
         destination_file = os.path.join(prj_dir, 'save_restore_destination_project.kicad_pcb')
         board = pcbnew.LoadBoard(destination_file)
         dst_anchor_fp_ref = 'L401'
-        restore_layout = RestoreLayout(board, dst_anchor_fp_ref)
+        restore_layout = RestoreLayout(board, dst_anchor_fp_ref, "group")
 
         restore_layout.restore_layout(data_file)
 
