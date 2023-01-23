@@ -1,6 +1,6 @@
-/initial_dialog_GUI.py
-/save_layout_dialog_GUI.py
-/error_dialog_GUI.py
+initial_dialog_GUI.py
+save_layout_dialog_GUI.py
+error_dialog_GUI.py
 *.jpg
 .directory
 __pycache__/
@@ -11,3 +11,4 @@ __pycache__/
 *.kicad_prl
 metadata_package.json
 metadata.json
+restore_layout_dialog_GUI.py
