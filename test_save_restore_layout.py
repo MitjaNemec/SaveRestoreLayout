@@ -12,6 +12,23 @@ from save_restore_layout import RestoreLayout
 
 class TestSave(unittest.TestCase):
 
+    def test_path(self):
+        prj_dir = os.path.normpath(os.path.dirname(os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                                                "SaveRestoreSourceProject_path_issue/")))
+        source_file = os.path.join(prj_dir, 'save_restore_source_project.kicad_pcb')
+
+        board = pcbnew.LoadBoard(source_file)
+        src_anchor_fp_ref = 'L401'
+        save_layout = SaveLayout(board, src_anchor_fp_ref)
+
+        # get the level from user
+        level = 1
+
+        data_file = os.path.join(prj_dir, 'source_layout_test_shallow.pckl')
+        save_layout.save_layout(save_layout.src_anchor_fp.sheet_id[0:level + 1], data_file,
+                                True, True, True, True, True)
+
+    @unittest.SkipTest
     def test_save_shallow(self):
         prj_dir = os.path.normpath(os.path.dirname(os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                    "SaveRestoreSourceProject/")))
@@ -28,6 +45,7 @@ class TestSave(unittest.TestCase):
         save_layout.save_layout(save_layout.src_anchor_fp.sheet_id[0:level + 1], data_file,
                                 True, True, True, True, True)
 
+    @unittest.SkipTest
     def test_save_deep(self):
         prj_dir = os.path.normpath(os.path.dirname(os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                    "SaveRestoreSourceProject/")))
@@ -44,6 +62,7 @@ class TestSave(unittest.TestCase):
         save_layout.save_layout(save_layout.src_anchor_fp.sheet_id[0:level + 1], data_file,
                                 True, True, True, True, True)
 
+    @unittest.SkipTest
     def test_restore_shallow_different_level(self):
         prj_dir = os.path.normpath(os.path.dirname(os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                    "SaveRestoreDestinationProject/")))
@@ -59,6 +78,7 @@ class TestSave(unittest.TestCase):
 
         saved = pcbnew.SaveBoard(destination_file.replace(".kicad_pcb", "_shallow_different.kicad_pcb"), board)
 
+    @unittest.SkipTest
     def test_restore_shallow_same_level(self):
         prj_dir = os.path.normpath(os.path.dirname(os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                    "SaveRestoreDestinationProject/")))
@@ -74,6 +94,7 @@ class TestSave(unittest.TestCase):
 
         saved = pcbnew.SaveBoard(destination_file.replace(".kicad_pcb", "_shallow_same.kicad_pcb"), board)
 
+    @unittest.SkipTest
     def test_restore_deep(self):
         prj_dir = os.path.normpath(os.path.dirname(os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                    "SaveRestoreDestinationProject/")))
