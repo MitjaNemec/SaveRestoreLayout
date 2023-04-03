@@ -189,6 +189,7 @@ class PrjData:
     def parse_schematic_files(self, filename, dict_of_sheets):
         with open(filename) as f:
             contents = f.read().split("\n")
+        filename_dir = os.path.dirname(filename)
         # find (sheet (at and then look in next few lines for new schematics file
         for i in range(len(contents)):
             line = contents[i]
@@ -203,10 +204,15 @@ class PrjData:
                         sheetname = contents[j].lstrip("(property \"Sheet name\"").split()[0].replace("\"", "")
                     if "(property \"Sheet file\"" in contents[j]:
                         sheetfile = contents[j].lstrip("(property \"Sheet file\"").split()[0].replace("\"", "")
+                sheetfilepath = os.path.join(filename_dir, sheetfile)
                 # here I should find all sheet data
-                dict_of_sheets[sheet_id] = [sheetname, sheetfile]
+                dict_of_sheets[sheet_id] = [sheetname, sheetfilepath]
+                # test if newfound file can be opened
+                if not os.path.exists(sheetfilepath):
+                    raise LookupError(f'File {sheetfilepath} does not exists. This is either due to error in parsing'
+                                      f' schematics files, missing schematics file or an error within the schematics')
                 # open a newfound file and look for nested sheets
-                self.parse_schematic_files(sheetfile, dict_of_sheets)
+                self.parse_schematic_files(sheetfilepath, dict_of_sheets)
         return
 
     def get_fp_by_ref(self, ref):
