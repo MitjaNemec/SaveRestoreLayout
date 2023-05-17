@@ -1096,7 +1096,7 @@ class RestoreLayout:
                 to_net_item = net_dict[to_net_name]
 
                 # make a duplicate, move it, rotate it, select proper net and add it to the board
-                new_track = track.Duplicate()
+                new_track = track.Duplicate().Cast()
                 new_track.SetNetCode(to_net_code, True)
                 new_track.SetNet(to_net_item)
                 new_track.Move(move_vector)
@@ -1163,7 +1163,7 @@ class RestoreLayout:
                 to_net_item = net_dict[to_net_name]
 
             # make a duplicate, move it, rotate it, select proper net and add it to the board
-            new_zone = zone.Duplicate()
+            new_zone = zone.Duplicate().Cast()
             new_zone.Move(move_vector)
             new_zone.SetNetCode(to_net_code, True)
             new_zone.SetNet(to_net_item)
@@ -1198,7 +1198,7 @@ class RestoreLayout:
         for text_index in range(nr_text):
             text = src_text[text_index]
 
-            new_text = text.Duplicate()
+            new_text = text.Duplicate().Cast()
             new_text.Move(move_vector)
             if src_anchor_fp.fp.IsFlipped() != dst_anchor_fp.fp.IsFlipped():
                 new_text.Flip(dst_anchor_fp_position, False)
@@ -1233,7 +1233,7 @@ class RestoreLayout:
         for dw_index in range(nr_drawings):
             drawing = src_drawings[dw_index]
 
-            new_drawing = drawing.Duplicate()
+            new_drawing = drawing.Duplicate().Cast()
             new_drawing.Move(move_vector)
 
             if src_anchor_fp.fp.IsFlipped() != dst_anchor_fp.fp.IsFlipped():
