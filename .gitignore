@@ -12,3 +12,7 @@ __pycache__/
 metadata_package.json
 metadata.json
 restore_layout_dialog_GUI.py
+/SaveRestoreSourceProject/fp-info-cache
+/SaveRestoreDestinationProject/fp-info-cache
+/SaveRestoreSourceProject/save_restore_source_project-backups
+/SaveRestoreDestinationProject/save_restore_destination_project-backups

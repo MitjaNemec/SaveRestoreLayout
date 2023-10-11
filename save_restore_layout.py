@@ -59,23 +59,47 @@ def rotate_around_point(old_position, point, angle):
     return new_position
 
 
+def find_all(string, substring):
+    indices = [index for index in range(len(string)) if string.startswith(substring, index)]
+    return indices
+
+
 def get_sch_hash(sch_file, md5hash):
 
     # load sch file
     with open(sch_file, 'rb') as f:
         file_contents = f.read().decode('utf-8').replace("\r", "")
-        sch_lines = file_contents.split('\n')
 
-    # remove reference and value fields
-    filtered_contents = []
-    for line in sch_lines:
-        if "(property \"Reference\" " not in line and "(property \"Value\" " not in line:
-            filtered_contents.append(line)
+    # remove all instances
+    filtered_contents = ""
+    instances_start = find_all(file_contents, "(instances")
+    instances_stop = []
+    instance_end_old = 0
+    for instance_start in instances_start:
+        current_index = instance_start + 1
+        number_of_parentheses = 1
+        # find termination
+
+        while number_of_parentheses != 0:
+            a = file_contents[current_index]
+            if file_contents[current_index] == "(":
+                number_of_parentheses = number_of_parentheses + 1
+            if file_contents[current_index] == ")":
+                number_of_parentheses = number_of_parentheses - 1
+            current_index = current_index + 1
+        instance_end = current_index
+        instances_stop.append(instance_end)
+
+        # concatenated everything between
+        filtered_contents = filtered_contents + file_contents[instance_end_old:instance_start]
+        instance_end_old = instance_end
+    # add last part
+    filtered_contents = filtered_contents + file_contents[instance_end_old:-1]
 
     # calculate the hash
-    hash_lines = [hashlib.md5(line.encode('utf-8')).hexdigest() for line in filtered_contents]
+    hash_lines = [hashlib.md5(line.encode('utf-8')).hexdigest() for line in filtered_contents.split('\n')]
 
-    # sort hashes
+    # sort hashes - so that summed has is more robust to positional changes of schematics
     hash_lines.sort()
 
     # get hash of hashes
@@ -109,8 +133,17 @@ def get_footprint_text_items(footprint):
     return list_of_items
 
 
+def semver_compare(ver_1, ver_2):
+    ver_1_list = [int(x) for x in ver_1.split(".")]
+    ver_2_list = [int(x) for x in ver_2.split(".")]
+    for i in range(min(len(ver_1_list), len(ver_2_list))):
+        if ver_2_list[i] > ver_1_list[i]:
+            return False
+    return True
+
+
 class PrjData:
-    def __init__(self, board, dont_parse_schematics=False):
+    def __init__(self, board, dict_of_sheets=None):
         self.board = board
 
         self.level = None
@@ -134,46 +167,55 @@ class PrjData:
         self.footprints = []
 
         # get dict_of_sheets from layout data only (through footprint Sheetfile and Sheetname properties)
-        self.dict_of_sheets = {}
-        unique_sheet_ids = set()
-        for fp in footprints:
-            # construct a set of unique sheets from footprint properties
-            path = fp.GetPath().AsString().upper().replace('00000000-0000-0000-0000-0000', '').split("/")
-            sheet_path = path[0:-1]
-            for x in sheet_path:
-                unique_sheet_ids.add(x)
+        if dict_of_sheets is None:
+            self.dict_of_sheets = {}
+            unique_sheet_ids = set()
+            for fp in footprints:
+                # construct a set of unique sheets from footprint properties
+                path = fp.GetPath().AsString().upper().replace('00000000-0000-0000-0000-0000', '').split("/")
+                sheet_path = path[0:-1]
+                for x in sheet_path:
+                    unique_sheet_ids.add(x)
 
-            sheet_id = self.get_sheet_id(fp)
-            try:
-                sheet_file = fp.GetProperty('Sheetfile')
-                sheet_name = fp.GetProperty('Sheetname')
-            except KeyError:
-                logger.info("Footprint " + fp.GetReference() +
-                            " does not have Sheetfile property, it will not be considered for placement."
-                            " Most likely it is only in layout")
-                continue
-            # footprint is in the schematics and has Sheetfile property
-            if sheet_file and sheet_id:
-                self.dict_of_sheets[sheet_id] = [sheet_name, sheet_file]
-            # footprint is in the schematics but has no Sheetfile properties
-            elif sheet_id:
-                logger.info("Footprint " + fp.GetReference() + " does not have Sheetfile property")
-                raise LookupError("Footprint " + str(
-                    fp.GetReference()) + " doesn't have Sheetfile and Sheetname properties. "
-                                         "You need to update the layout from schematics")
-            # footprint is only in the layout
-            else:
-                logger.debug("Footprint " + fp.GetReference() + " is only in layout")
+                sheet_id = self.get_sheet_id(fp)
+                try:
+                    sheet_file = fp.GetProperty('Sheetfile')
+                    sheet_name = fp.GetProperty('Sheetname')
+                except KeyError:
+                    logger.info("Footprint " + fp.GetReference() +
+                                " does not have Sheetfile property, it will not be considered for placement."
+                                " Most likely it is only in layout")
+                    continue
+                # footprint is in the schematics and has Sheetfile property
+                if sheet_file and sheet_id:
+                    self.dict_of_sheets[sheet_id] = [sheet_name, sheet_file]
+                # footprint is in the schematics but has no Sheetfile properties
+                elif sheet_id:
+                    logger.info("Footprint " + fp.GetReference() + " does not have Sheetfile property")
+                    raise LookupError("Footprint " + str(
+                        fp.GetReference()) + " doesn't have Sheetfile and Sheetname properties. "
+                                             "You need to update the layout from schematics")
+                # footprint is only in the layout
+                else:
+                    logger.debug("Footprint " + fp.GetReference() + " is only in layout")
 
-        # catch corner cases with nested hierarchy, where some hierarchical pages don't have any footprints
-        unique_sheet_ids.remove("")
-        if (len(unique_sheet_ids) > len(self.dict_of_sheets)) and not dont_parse_schematics:
-            # open root schematics file and parse for other schematics files
-            # This might be prone to errors regarding path discovery
-            # thus it is used only in corner cases
-            schematic_found = {}
-            self.parse_schematic_files(self.sch_filename, schematic_found)
-            self.dict_of_sheets = schematic_found
+            # catch corner cases with nested hierarchy, where some hierarchical pages don't have any footprints
+            unique_sheet_ids.remove("")
+            if len(unique_sheet_ids) > len(self.dict_of_sheets):
+                # open root schematics file and parse for other schematics files
+                # This might be prone to errors regarding path discovery
+                # thus it is used only in corner cases
+                schematic_found = {}
+                self.parse_schematic_files(self.sch_filename, schematic_found)
+                # make all path relative
+                self.dict_of_sheets = {}
+                for item in schematic_found.items():
+                    sheet_name = item[1][0]
+                    sheet_path = item[1][1]
+                    rel_sheet_path = os.path.relpath(sheet_path, start=self.project_folder)
+                    self.dict_of_sheets[item[0]] = [sheet_name, rel_sheet_path]
+        else:
+            self.dict_of_sheets = dict_of_sheets
 
         # construct a list of all the footprints
         for fp in footprints:
@@ -369,7 +411,8 @@ class SaveLayout:
 
         logger.info(f'Loaded temp boardfile: {self.board.GetFileName()}')
         logger.info("Get project schematics and layout data")
-        self.save_prjdata = PrjData(self.board)
+        self.save_prjdata = PrjData(self.board, dict_of_sheets=self.src_prjdata.dict_of_sheets)
+        self.save_prjdata.dict_of_sheets = self.src_prjdata.dict_of_sheets
         # override project paths
         self.save_prjdata.pcb_filename = os.path.abspath(board.GetFileName())
         self.save_prjdata.sch_filename = self.save_prjdata.pcb_filename.replace(".kicad_pcb", ".kicad_sch")
@@ -687,10 +730,7 @@ class RestoreLayout:
             data_saved = pickle.load(f)
 
         # check if version matches
-        saved_version = int(data_saved.version.replace(".", ""))
-        current_version = int(VERSION.replace(".", ""))
-
-        if saved_version > current_version:
+        if semver_compare(VERSION, data_saved.version):
             raise LookupError("Layout was saved with newer version of the plugin. This is not supported.")
 
         # check layer count

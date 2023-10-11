@@ -88,6 +88,8 @@ class SaveDialog(SaveLayoutDialogGUI):
         self.logger = logger
         self.save_layout = layout_saver
         self.list_levels.Clear()
+        self.logger.info(f'populating the levels with {repr(layout_saver.src_anchor_fp.filename)}')
+        self.logger.info(f'populating the levels with {repr(layout_saver.src_anchor_fp.sheet_id)}')
         self.list_levels.AppendItems(layout_saver.src_anchor_fp.filename)
 
         self.hl_fps = []
@@ -95,12 +97,16 @@ class SaveDialog(SaveLayoutDialogGUI):
 
     def level_changed(self, event):
         # clear highlight on all footprints on selected level
+        self.logger.info(f'Clearing highlight')
         self.save_layout.highlight_clear_level(self.hl_fps, self.hl_items)
         self.hl_fps = []
         self.hl_items = []
         pcbnew.Refresh()
 
         # highlight all footprints on selected level
+        self.logger.info(f'levels_selection {repr(self.list_levels.GetSelection())}')
+        self.logger.info(f'levels available {repr(self.save_layout.src_anchor_fp.sheet_id)}')
+
         (self.hl_fps, self.hl_items) = self.save_layout.highlight_set_level(self.save_layout.src_anchor_fp.sheet_id[0:self.list_levels.GetSelection() + 1],
                                                                             self.cb_tracks.GetValue(),
                                                                             self.cb_zones.GetValue(),
