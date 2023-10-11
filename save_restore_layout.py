@@ -139,6 +139,8 @@ def semver_compare(ver_1, ver_2):
     for i in range(min(len(ver_1_list), len(ver_2_list))):
         if ver_2_list[i] > ver_1_list[i]:
             return False
+        if ver_2_list[i] < ver_1_list[i]:
+            return True
     return True
 
 
@@ -473,7 +475,7 @@ class SaveLayout:
         # load as text
         logger.info("Reading layout as text")
         with open(self.temp_filename, 'rb') as f:
-            layout = f.read().decode('utf-8')
+            layout_file_as_text = f.read().decode('utf-8')
 
         # remove the file
         os.remove(self.temp_filename)
@@ -485,7 +487,7 @@ class SaveLayout:
         level_saved = level_filename[len(level)-1]
         copper_layer_count = self.save_prjdata.board.GetCopperLayerCount()
         data_to_save = LayoutData(VERSION,
-                                  layout,
+                                  layout_file_as_text,
                                   hex_hash,
                                   self.save_prjdata.dict_of_sheets,
                                   local_nets, level_saved, level_filename,
@@ -730,7 +732,7 @@ class RestoreLayout:
             data_saved = pickle.load(f)
 
         # check if version matches
-        if semver_compare(VERSION, data_saved.version):
+        if semver_compare(VERSION, data_saved.version) is False:
             raise LookupError("Layout was saved with newer version of the plugin. This is not supported.")
 
         # check layer count
@@ -797,7 +799,7 @@ class RestoreLayout:
 
         # get layout data from saved board
         logger.info("Get layout data from saved board")
-        saved_layout = PrjData(saved_board, dont_parse_schematics=True)
+        saved_layout = PrjData(saved_board, dict_of_sheets=data_saved.dict_of_sheets)
 
         saved_fps = saved_layout.footprints
 
