@@ -1120,6 +1120,7 @@ class RestoreLayout:
         delta_orientation = dst_anchor_fp_angle - src_anchor_fp_angle
 
         net_pairs, net_dict = net_pairs
+        logger.info(f'Net pairs are: {repr(net_pairs)}')
 
         # go through all the tracks
         nr_tracks = len(src_tracks)
@@ -1173,6 +1174,7 @@ class RestoreLayout:
         delta_orientation = dst_anchor_fp_angle - src_anchor_fp_angle
 
         net_pairs, net_dict = net_pairs
+        logger.info(f'Net pairs are: {repr(net_pairs)}')
         # go through all the zones
         nr_zones = len(src_zones)
         for zone_index in range(nr_zones):
@@ -1180,12 +1182,16 @@ class RestoreLayout:
 
             # get from which net we are cloning
             from_net_name = zone.GetNetname()
+            logger.info(f'Handlilng zone connected to: {repr(from_net_name)}')
+
             # if zone is not on copper layer it does not matter on which net it is
             if not zone.IsOnCopperLayer():
                 tup = [('', '')]
             else:
                 if from_net_name:
                     tup = [item for item in net_pairs if item[0] == from_net_name]
+                    logger.info(f'Zone list of net tuples: {repr(tup)}')
+                    # TODO - what if the designed is restored in a project where some net does not exist?
                 else:
                     tup = [('', '')]
 
@@ -1194,6 +1200,15 @@ class RestoreLayout:
                 # Allow keepout zones to be cloned.
                 if not zone.IsOnCopperLayer():
                     tup = [('', '')]
+            # TODO should probably need to cover the else case
+            else:
+                logger.info(f'unhandled net pair case with zone. The zone has a name: {repr(zone.GetZoneName())}\n'
+                            f'is connected: {repr(zone.IsConnected())}\n'
+                            f'is on net: {repr(zone.GetNetname())}\n'
+                            f'has flags: {repr(zone.GetFlags())}\n'
+                            f'is of class: {repr(zone.GetClass())}\n'
+                            f'is of type: {repr(zone.GetTypeDesc())}\n'
+                            f'has center at: {repr(zone.GetCenter())}\n')
 
             # start the clone
             to_net_name = tup[0][1]
