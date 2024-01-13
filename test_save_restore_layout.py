@@ -24,7 +24,7 @@ class TestSave(unittest.TestCase):
         # get the level from user
         level = 1
 
-        data_file = os.path.join(prj_dir, 'test_shallow.pckl')
+        data_file = os.path.join(prj_dir, 'test_shallow.json')
         save_layout.save_layout(save_layout.src_anchor_fp.sheet_id[0:level + 1], data_file,
                                 True, True, True, True, False)
 
@@ -41,7 +41,7 @@ class TestSave(unittest.TestCase):
         # get the level from user
         level = 2
 
-        data_file = os.path.join(prj_dir, 'test_shallow_alt.pckl')
+        data_file = os.path.join(prj_dir, 'test_shallow_alt.json')
         save_layout.save_layout(save_layout.src_anchor_fp.sheet_id[0:level + 1], data_file,
                                 True, True, True, True, False)
 
@@ -58,33 +58,33 @@ class TestSave(unittest.TestCase):
         # get the level from user
         level = 0
 
-        data_file = os.path.join(prj_dir, 'test_deep.pckl')
+        data_file = os.path.join(prj_dir, 'test_deep.json')
         save_layout.save_layout(save_layout.src_anchor_fp.sheet_id[0:level + 1], data_file,
                                 True, True, True, True, False)
 
-    @unittest.SkipTest
+
     def test_restore_shallow_different_level(self):
         prj_dir = os.path.normpath(os.path.dirname(os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                    "SaveRestoreDestinationProject/")))
         src_prj_dir = os.path.normpath(os.path.dirname(os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                                                     "SaveRestoreSourceProject/")))
-        data_file = os.path.join(src_prj_dir, 'source_layout_test_shallow.pckl')
+        data_file = os.path.join(src_prj_dir, 'test_shallow.json')
         destination_file = os.path.join(prj_dir, 'save_restore_destination_project.kicad_pcb')
         board = pcbnew.LoadBoard(destination_file)
-        dst_anchor_fp_ref = 'L201'
+        dst_anchor_fp_ref = 'L301'
         restore_layout = RestoreLayout(board, dst_anchor_fp_ref, "Shallow, different level")
 
         restore_layout.restore_layout(data_file)
 
         saved = pcbnew.SaveBoard(destination_file.replace(".kicad_pcb", "_shallow_different.kicad_pcb"), board)
 
-    @unittest.SkipTest
+
     def test_restore_shallow_same_level(self):
         prj_dir = os.path.normpath(os.path.dirname(os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                    "SaveRestoreDestinationProject/")))
         src_prj_dir = os.path.normpath(os.path.dirname(os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                                                     "SaveRestoreSourceProject/")))
-        data_file = os.path.join(src_prj_dir, 'test_shallow.pckl')
+        data_file = os.path.join(src_prj_dir, 'test_shallow.json')
         destination_file = os.path.join(prj_dir, 'save_restore_destination_project.kicad_pcb')
         board = pcbnew.LoadBoard(destination_file)
         dst_anchor_fp_ref = 'R301'
@@ -94,13 +94,13 @@ class TestSave(unittest.TestCase):
 
         saved = pcbnew.SaveBoard(destination_file.replace(".kicad_pcb", "_shallow_same.kicad_pcb"), board)
 
-    @unittest.SkipTest
+
     def test_restore_shallow_same_level_alt(self):
         prj_dir = os.path.normpath(os.path.dirname(os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                    "SaveRestoreDestinationProject/")))
         src_prj_dir = os.path.normpath(os.path.dirname(os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                                                     "SaveRestoreSourceProject/")))
-        data_file = os.path.join(src_prj_dir, 'test_shallow_alt.pckl')
+        data_file = os.path.join(src_prj_dir, 'test_shallow_alt.json')
         destination_file = os.path.join(prj_dir, 'save_restore_destination_project.kicad_pcb')
         board = pcbnew.LoadBoard(destination_file)
         dst_anchor_fp_ref = 'R301'
@@ -110,13 +110,13 @@ class TestSave(unittest.TestCase):
 
         saved = pcbnew.SaveBoard(destination_file.replace(".kicad_pcb", "_shallow_same_alt.kicad_pcb"), board)
 
-    @unittest.SkipTest
+
     def test_restore_deep(self):
         prj_dir = os.path.normpath(os.path.dirname(os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                    "SaveRestoreDestinationProject/")))
         src_prj_dir = os.path.normpath(os.path.dirname(os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                                                     "SaveRestoreSourceProject/")))
-        data_file = os.path.join(src_prj_dir, 'test_deep.pckl')
+        data_file = os.path.join(src_prj_dir, 'test_deep.json')
         destination_file = os.path.join(prj_dir, 'save_restore_destination_project.kicad_pcb')
         board = pcbnew.LoadBoard(destination_file)
         dst_anchor_fp_ref = 'R301'

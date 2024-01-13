@@ -28,6 +28,7 @@ import os
 import tempfile
 import hashlib
 import pickle
+import json
 
 with open(os.path.join(os.path.join(os.path.dirname(os.path.abspath(__file__))), 'version.txt')) as fp:
     VERSION = fp.readline()
@@ -128,7 +129,7 @@ def get_footprint_text_items(footprint):
 
     footprint_items = footprint.fp.GraphicalItems()
     for item in footprint_items:
-        if type(item) is pcbnew.FP_TEXT:
+        if type(item) is pcbnew.PCB_TEXT:
             list_of_items.append(item)
     return list_of_items
 
@@ -181,8 +182,8 @@ class PrjData:
 
                 sheet_id = self.get_sheet_id(fp)
                 try:
-                    sheet_file = fp.GetProperty('Sheetfile')
-                    sheet_name = fp.GetProperty('Sheetname')
+                    sheet_file = fp.GetSheetfile()
+                    sheet_name = fp.GetSheetname()
                 except KeyError:
                     logger.info("Footprint " + fp.GetReference() +
                                 " does not have Sheetfile property, it will not be considered for placement."
@@ -231,53 +232,90 @@ class PrjData:
         # TODO check if there is any other footprint fit same ID as anchor footprint
 
     def parse_schematic_files(self, filename, dict_of_sheets):
-        with open(filename, encoding='utf-8') as f:
-            contents = f.read().split("\n")
         filename_dir = os.path.dirname(filename)
-        # find (sheet (at and then look in next few lines for new schematics file
-        for i in range(len(contents)):
-            line = contents[i]
-            if "(sheet (at" in line:
-                sheetname = ""
-                sheetfile = ""
-                sheet_id = ""
-                sn_found = False
-                sf_found = False
-                for j in range(i,i+10):
-                    line_con = contents[j]
-                    if "(uuid " in contents[j]:
-                        path = contents[j].replace("(uuid ", '').rstrip(")").upper().strip()
-                        sheet_id = path.replace('00000000-0000-0000-0000-0000', '')
-                    if "(property \"Sheet name\"" in contents[j] or "(property \"Sheetname\"" in contents[j]:
-                        if "(property \"Sheet name\"" in contents[j]:
-                            sheetname = contents[j].replace("(property \"Sheet name\"", '').split("(")[0].replace("\"", "").strip()
-                            sn_found = True
-                        if "(property \"Sheetname\"" in contents[j]:
-                            sheetname = contents[j].replace("(property \"Sheetname\"", '').split("(")[0].replace("\"", "").strip()
-                            sn_found = True
-                    if "(property \"Sheet file\"" in contents[j] or "(property \"Sheetfile\"" in contents[j]:
-                        if "(property \"Sheet file\"" in contents[j]:
-                            sheetfile = contents[j].replace("(property \"Sheet file\"", '').split("(")[0].replace("\"", "").strip()
-                            sf_found = True
-                        if "(property \"Sheetfile\"" in contents[j]:
-                            sheetfile = contents[j].replace("(property \"Sheetfile\"", '').split("(")[0].replace("\"", "").strip()
-                            sf_found = True
-                # properly handle property not found
-                if not sn_found or not sf_found:
-                    logger.info(f'Did not found sheetfile and/or sheetname properties in the schematic file '
-                                f'in {filename} line:{str(i)}')
-                    raise LookupError(f'Did not found sheetfile and/or sheetname properties in the schematic file '
-                                f'in {filename} line:{str(i)}. Unsupported schematics file format')
 
-                sheetfilepath = os.path.join(filename_dir, sheetfile)
-                # here I should find all sheet data
-                dict_of_sheets[sheet_id] = [sheetname, sheetfilepath]
-                # test if newfound file can be opened
-                if not os.path.exists(sheetfilepath):
-                    raise LookupError(f'File {sheetfilepath} does not exists. This is either due to error in parsing'
-                                      f' schematics files, missing schematics file or an error within the schematics')
-                # open a newfound file and look for nested sheets
-                self.parse_schematic_files(sheetfilepath, dict_of_sheets)
+        with open(filename, encoding='utf-8') as f:
+            contents = f.read()
+
+        indexes = []
+        level = []
+        sheet_definitions = []
+        new_lines = []
+        lvl = 0
+        # get the nesting levels at index
+        for idx in range(len(contents) - 20):
+            if contents[idx] == "(":
+                lvl = lvl + 1
+                level.append(lvl)
+                indexes.append(idx)
+            if contents[idx] == ")":
+                lvl = lvl - 1
+                level.append(lvl)
+                indexes.append(idx)
+            if contents[idx] == "\n":
+                new_lines.append(idx)
+            a = contents[idx:idx + 20]
+            if a.startswith("(sheet\n") or a.startswith("(sheet "):
+                sheet_definitions.append(idx)
+
+        start_idx = sheet_definitions
+        end_idx = sheet_definitions[1:]
+        end_idx.append(len(contents))
+        braces = list(zip(indexes, level))
+        # parse individual sheet definitions (if any)
+        for start, end in zip(start_idx, end_idx):
+            def next_bigger(l, v):
+                for m in l:
+                    if m > v:
+                        return m
+
+            uuid_loc = contents[start:end].find('(uuid') + start
+            uuid_loc_end = next_bigger(new_lines, uuid_loc)
+            uuid_complete_string = contents[uuid_loc:uuid_loc_end]
+            uuid = uuid_complete_string.strip("(uuid").strip(")").replace("\"", '').upper().lstrip()
+
+            v8encoding = contents[start:end].find('(property "Sheetname\"')
+            v7encoding = contents[start:end].find('(property "Sheet name\"')
+            if v8encoding != -1:
+                offset = v8encoding
+            elif v7encoding != -1:
+                offset = v7encoding
+            else:
+                logger.info(f'Did not found sheetname properties in the schematic file '
+                            f'in {filename} line:{str(i)}')
+                raise LookupError(f'Did not found sheetname properties in the schematic file '
+                                  f'in {filename} line:{str(i)}. Unsupported schematics file format')
+            sheetname_loc = offset + start
+            sheetname_loc_end = next_bigger(new_lines, sheetname_loc)
+            sheetname_complete_string = contents[sheetname_loc:sheetname_loc_end]
+            sheetname = sheetname_complete_string.strip("(property").split('"')[1::2][1]
+
+            v8encoding = contents[start:end].find('(property "Sheetfile\"')
+            v7encoding = contents[start:end].find('(property "Sheet file\"')
+            if v8encoding != -1:
+                offset = v8encoding
+            elif v7encoding != -1:
+                offset = v7encoding
+            else:
+                logger.info(f'Did not found sheetfile properties in the schematic file '
+                            f'in {filename}.')
+                raise LookupError(f'Did not found sheetfile properties in the schematic file '
+                                  f'in {filename}. Unsupported schematics file format')
+            sheetfile_loc = offset + start
+            sheetfile_loc_end = next_bigger(new_lines, sheetfile_loc)
+            sheetfile_complete_string = contents[sheetfile_loc:sheetfile_loc_end]
+            sheetfile = sheetfile_complete_string.strip("(property").split('"')[1::2][1]
+
+            sheetfilepath = os.path.join(filename_dir, sheetfile)
+            dict_of_sheets[uuid] = [sheetname, sheetfile]
+
+            # test if newfound file can be opened
+            if not os.path.exists(sheetfilepath):
+                raise LookupError(f'File {sheetfilepath} does not exists. This is either due to error in parsing'
+                                  f' schematics files, missing schematics file or an error within the schematics')
+            # open a newfound file and look for nested sheets
+            self.parse_schematic_files(sheetfilepath, dict_of_sheets)
+            pass
         return
 
     def get_fp_by_ref(self, ref):
@@ -317,12 +355,6 @@ class PrjData:
         else:
             sheet_path = ["", ""]
         return sheet_path
-
-    def get_fp_by_ref(self, ref):
-        for fp in self.footprints:
-            if fp.ref == ref:
-                return fp
-        return None
 
     def get_footprints_on_sheet(self, level):
         footprints_on_sheet = []
@@ -407,9 +439,9 @@ class SaveLayout:
         if os.path.isfile(self.temp_filename):
             os.remove(self.temp_filename)
         logger.info(f'Saving board as tempfile: {self.temp_filename}')
-        pcbnew.IO_MGR.Save(pcbnew.IO_MGR.KICAD_SEXP, self.temp_filename, board)
+        pcbnew.PCB_IO_MGR.Save(pcbnew.PCB_IO_MGR.KICAD_SEXP, self.temp_filename, board)
 
-        self.board = pcbnew.IO_MGR.Load(pcbnew.IO_MGR.KICAD_SEXP, self.temp_filename)
+        self.board = pcbnew.PCB_IO_MGR.Load(pcbnew.PCB_IO_MGR.KICAD_SEXP, self.temp_filename)
 
         logger.info(f'Loaded temp boardfile: {self.board.GetFileName()}')
         logger.info("Get project schematics and layout data")
@@ -470,7 +502,7 @@ class SaveLayout:
 
         # save the layout
         logger.info("Saving layout in temporary file")
-        pcbnew.IO_MGR.Save(pcbnew.IO_MGR.KICAD_SEXP, self.temp_filename, self.board)
+        pcbnew.PCB_IO_MGR.Save(pcbnew.PCB_IO_MGR.KICAD_SEXP, self.temp_filename, self.board)
 
         # load as text
         logger.info("Reading layout as text")
@@ -492,8 +524,12 @@ class SaveLayout:
                                   self.save_prjdata.dict_of_sheets,
                                   local_nets, level_saved, level_filename,
                                   copper_layer_count)
-        with open(data_file, 'wb') as f:
-            pickle.dump(data_to_save, f, 0)
+        if data_file.endswith('.pckl'):
+            with open(data_file, 'wb') as f:
+                pickle.dump(data_to_save, f, 0)
+        if data_file.endswith('.json'):
+            with open(data_file, 'w') as f:
+                json.dump(data_to_save, f)
         logger.info("Successfully saved the layout")
 
     def remove_drawings(self, bounding_box, containing, remove_all=False):
@@ -728,8 +764,14 @@ class RestoreLayout:
     def restore_layout(self, layout_file):
         logger.info("Loading saved design")
         # load saved design
-        with open(layout_file, 'rb') as f:
-            data_saved = pickle.load(f)
+        if layout_file.endswith('.pckl'):
+            with open(layout_file, 'rb') as f:
+                data_saved = pickle.load(f)
+        if layout_file.endswith('.json'):
+            with open(layout_file, 'r') as f:
+                json_load = json.load(f)
+                data_saved = LayoutData(json_load[0], json_load[1], json_load[2], json_load[3],
+                                        json_load[4], json_load[5], json_load[6], json_load[7])
 
         # check if version matches
         if semver_compare(VERSION, data_saved.version) is False:
@@ -793,7 +835,7 @@ class RestoreLayout:
             f.write(data_saved.layout.encode('utf-8'))
 
         # restore layout data
-        saved_board = pcbnew.IO_MGR.Load(pcbnew.IO_MGR.KICAD_SEXP, temp_filename)
+        saved_board = pcbnew.PCB_IO_MGR.Load(pcbnew.PCB_IO_MGR.KICAD_SEXP, temp_filename)
         # delete temporary file
         os.remove(temp_filename)
 
@@ -1060,8 +1102,8 @@ class RestoreLayout:
                         len(dst_fp_text_items)) + ")")
 
             # replicate each text item
-            src_text: pcbnew.FP_TEXT
-            dst_text: pcbnew.FP_TEXT
+            src_text: pcbnew.PCB_TEXT
+            dst_text: pcbnew.PCB_TEXT
             for src_text in src_fp_text_items:
                 txt_index = src_fp_text_items.index(src_text)
                 src_txt_pos = src_text.GetPosition()
@@ -1073,6 +1115,8 @@ class RestoreLayout:
                 dst_text = dst_fp_text_items[txt_index]
 
                 dst_text.SetLayer(src_text.GetLayer())
+                # set text parameters
+                dst_text.SetAttributes(src_text.GetAttributes())
                 # properly set position
                 if src_fp_flipped != dst_fp_flipped:
                     dst_text.Flip(dst_anchor_fp_position, False)
@@ -1081,26 +1125,14 @@ class RestoreLayout:
                     dst_txt_rel_pos_rot = rotate_around_center(dst_txt_rel_pos, delta_angle)
                     dst_txt_pos = dst_fp_pos + pcbnew.VECTOR2I(dst_txt_rel_pos_rot[0], dst_txt_rel_pos_rot[1])
                     dst_text.SetPosition(dst_txt_pos)
-                    dst_text.SetTextAngle(-src_txt_orientation)
+                    dst_text.SetTextAngle(-src_txt_orientation - anchor_delta_angle)
                     dst_text.SetMirrored(not src_text.IsMirrored())
                 else:
                     dst_txt_rel_pos = rotate_around_center(src_txt_rel_pos, -delta_angle)
                     dst_txt_pos = dst_fp_pos + pcbnew.VECTOR2I(int(dst_txt_rel_pos[0]), int(dst_txt_rel_pos[1]))
                     dst_text.SetPosition(dst_txt_pos)
-                    dst_text.SetTextAngle(src_txt_orientation)
+                    dst_text.SetTextAngle(src_txt_orientation - anchor_delta_angle)
                     dst_text.SetMirrored(src_text.IsMirrored())
-
-                # set text parameters
-                dst_text.SetTextThickness(src_text.GetTextThickness())
-                dst_text.SetTextWidth(src_text.GetTextWidth())
-                dst_text.SetTextHeight(src_text.GetTextHeight())
-                dst_text.SetItalic(src_text.IsItalic())
-                dst_text.SetBold(src_text.IsBold())
-                dst_text.SetMultilineAllowed(src_text.IsMultilineAllowed())
-                dst_text.SetHorizJustify(src_text.GetHorizJustify())
-                dst_text.SetVertJustify(src_text.GetVertJustify())
-                dst_text.SetKeepUpright(src_text.IsKeepUpright())
-                dst_text.SetVisible(src_text.IsVisible())             
 
             # Add Footprint to group
             if layout_group:

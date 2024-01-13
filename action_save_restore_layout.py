@@ -238,7 +238,7 @@ class SaveRestoreLayout(pcbnew.ActionPlugin):
                     return
 
                 # Ask the user top specify file
-                wildcard = "Saved Layout Files (*.pckl)|*.pckl"
+                wildcard = "Saved Layout Files (*.pckl)|*.pckl|Saved Layout Files (*.json)|*.json"
                 dlg = wx.FileDialog(self.frame, "Select a file", os.getcwd(),
                                     save_layout.src_anchor_fp.filename[selected_level].strip(".kicad_sch"), wildcard,
                                     wx.FD_SAVE)
@@ -280,7 +280,7 @@ class SaveRestoreLayout(pcbnew.ActionPlugin):
             logger.info("Restore layout chosen")
 
             # ask the user to find the layout information file
-            wildcard = "Saved Layout Files (*.pckl)|*.pckl"
+            wildcard = "Saved Layout Files (*.pckl)|*.pckl|Saved Layout Files (*.json)|*.json"
             dlg = wx.FileDialog(self.frame, "Choose a file", os.getcwd(), "", wildcard, wx.FD_OPEN)
             res = dlg.ShowModal()
             if res != wx.ID_OK:
