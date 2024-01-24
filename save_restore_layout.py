@@ -71,9 +71,17 @@ def get_sch_hash(sch_file, md5hash):
     with open(sch_file, 'rb') as f:
         file_contents = f.read().decode('utf-8').replace("\r", "")
 
+    # remove all "(property "Reference" "R201"" lines as they might differ in reference number
+    contents_by_line = file_contents.split("\n")
+    contents_by_line_removed = []
+    for c in contents_by_line:
+        if "(property \"Reference\"" not in c:
+            contents_by_line_removed.append(c)
+    file_contents_without_references = "\n".join(contents_by_line_removed)
+
     # remove all instances
     filtered_contents = ""
-    instances_start = find_all(file_contents, "(instances")
+    instances_start = find_all(file_contents_without_references, "(instances")
     instances_stop = []
     instance_end_old = 0
     for instance_start in instances_start:
@@ -82,23 +90,23 @@ def get_sch_hash(sch_file, md5hash):
         # find termination
 
         while number_of_parentheses != 0:
-            a = file_contents[current_index]
-            if file_contents[current_index] == "(":
+            a = file_contents_without_references[current_index]
+            if file_contents_without_references[current_index] == "(":
                 number_of_parentheses = number_of_parentheses + 1
-            if file_contents[current_index] == ")":
+            if file_contents_without_references[current_index] == ")":
                 number_of_parentheses = number_of_parentheses - 1
             current_index = current_index + 1
         instance_end = current_index
         instances_stop.append(instance_end)
 
         # concatenated everything between
-        filtered_contents = filtered_contents + file_contents[instance_end_old:instance_start]
+        filtered_contents = filtered_contents + file_contents_without_references[instance_end_old:instance_start]
         instance_end_old = instance_end
     # add last part
-    filtered_contents = filtered_contents + file_contents[instance_end_old:-1]
+    filtered_contents = filtered_contents + file_contents_without_references[instance_end_old:-1]
 
-    # calculate the hash
-    hash_lines = [hashlib.md5(line.encode('utf-8')).hexdigest() for line in filtered_contents.split('\n')]
+    # calculate the hash - disregard the empty lines
+    hash_lines = [hashlib.md5(line.encode('utf-8')).hexdigest() for line in filtered_contents.split('\n') if line.strip()]
 
     # sort hashes - so that summed has is more robust to positional changes of schematics
     hash_lines.sort()
@@ -210,18 +218,33 @@ class PrjData:
                 # thus it is used only in corner cases
                 schematic_found = {}
                 self.parse_schematic_files(self.sch_filename, schematic_found)
-                # make all path relative
+                # make all paths relative
                 self.dict_of_sheets = {}
                 for item in schematic_found.items():
                     sheet_name = item[1][0]
                     sheet_path = item[1][1]
-                    rel_sheet_path = os.path.relpath(sheet_path, start=self.project_folder)
+                    rel_sheet_path = sheet_path
                     self.dict_of_sheets[item[0]] = [sheet_name, rel_sheet_path]
         else:
             self.dict_of_sheets = dict_of_sheets
 
+        # test if all filenames exist, if not, try finding one in a subfolder if avaialble
+        other_folders = []
+        for k, i in self.dict_of_sheets.items():
+            d = os.path.dirname(i[1])
+            if d:
+                other_folders.append(d)
+        # test and correct
+        for k, i in self.dict_of_sheets.items():
+            f = i[1]
+            if not os.path.exists(os.path.join(self.project_folder, f)):
+                for d in other_folders:
+                    if os.path.exists(os.path.join(self.project_folder, d, f)):
+                        self.dict_of_sheets[k] = [i[0], os.path.join(d, f)]
+
         # construct a list of all the footprints
         for fp in footprints:
+            fp_ref = fp.GetReference()
             fp_tuple = Footprint(fp=fp,
                                  fp_id=self.get_footprint_id(fp),
                                  sheet_id=self.get_sheet_path(fp)[0],
@@ -394,10 +417,10 @@ class PrjData:
         # get nets other footprints are connected to
         other_nets = self.get_nets_from_footprints(other_footprints)
         # get nets only source footprints are connected to
-        src_nets = self.get_nets_from_footprints(src_footprints)
+        nets_on_sheet = self.get_nets_from_footprints(src_footprints)
 
         src_local_nets = []
-        for net in src_nets:
+        for net in nets_on_sheet:
             if net not in other_nets:
                 src_local_nets.append(net)
 
@@ -453,6 +476,7 @@ class SaveLayout:
         self.save_prjdata.project_folder = os.path.dirname(self.save_prjdata.pcb_filename)
 
         self.src_anchor_fp = self.save_prjdata.get_fp_by_ref(src_anchor_fp_ref)
+        self.nets_exclusively_on_sheet = None
 
     def save_layout(self, level, data_file,
                     tracks, zones, text, drawings, intersecting):
@@ -478,7 +502,7 @@ class SaveLayout:
         other_fps = self.save_prjdata.get_footprints_not_on_sheet(level)
 
         # get nets local to source footprints
-        local_nets = self.save_prjdata.get_local_nets(src_fps, other_fps)
+        self.nets_exclusively_on_sheet = self.save_prjdata.get_local_nets(src_fps, other_fps)
 
         # get source bounding box
         bounding_box = self.save_prjdata.get_footprints_bounding_box(src_fps)
@@ -522,7 +546,7 @@ class SaveLayout:
                                   layout_file_as_text,
                                   hex_hash,
                                   self.save_prjdata.dict_of_sheets,
-                                  local_nets, level_saved, level_filename,
+                                  self.nets_exclusively_on_sheet, level_saved, level_filename,
                                   copper_layer_count)
         if data_file.endswith('.pckl'):
             with open(data_file, 'wb') as f:
@@ -546,10 +570,14 @@ class SaveLayout:
             else:
                 if containing:
                     if not bounding_box.Contains(drawing_bb):
-                        drawings_to_delete.append(drawing)
+                        if drawing.IsConnected():
+                            if drawing.GetNetname() not in self.nets_exclusively_on_sheet:
+                                drawings_to_delete.append(drawing)
                 else:
                     if not bounding_box.Intersects(drawing_bb):
-                        drawings_to_delete.append(drawing)
+                        if drawing.IsConnected():
+                            if drawing.GetNetname() not in self.nets_exclusively_on_sheet:
+                                drawings_to_delete.append(drawing)
         for dwg in drawings_to_delete:
             self.board.RemoveNative(dwg)
 
@@ -588,10 +616,12 @@ class SaveLayout:
             else:
                 if containing:
                     if not bounding_box.Contains(zone_bb):
-                        self.board.RemoveNative(zone)
+                        if zone.GetNetname() not in self.nets_exclusively_on_sheet:
+                            self.board.RemoveNative(zone)
                 else:
                     if not bounding_box.Intersects(zone_bb):
-                        self.board.RemoveNative(zone)
+                        if zone.GetNetname() not in self.nets_exclusively_on_sheet:
+                            self.board.RemoveNative(zone)
 
     def remove_tracks(self, bounding_box, containing, remove_all=False):
         logger.info("Removing tracks")
@@ -609,10 +639,12 @@ class SaveLayout:
             else:
                 if containing:
                     if not bounding_box.Contains(track_bb):
-                        tracks_to_delete.append(track)
+                        if track.GetNetname() not in self.nets_exclusively_on_sheet:
+                            tracks_to_delete.append(track)
                 else:
                     if not bounding_box.Intersects(track_bb):
-                        tracks_to_delete.append(track)
+                        if track.GetNetname() not in self.nets_exclusively_on_sheet:
+                            tracks_to_delete.append(track)
         for trk in tracks_to_delete:
             self.board.RemoveNative(trk)
 
@@ -868,7 +900,7 @@ class RestoreLayout:
         else:
             self.layout_group = None
 
-        # replicate modules
+        # replicate footprints
         src_anchor_fp = saved_fps[footprints_to_place.index(self.dst_anchor_fp)]
         self.replicate_footprints(src_anchor_fp, saved_fps, self.dst_anchor_fp, footprints_to_place, self.layout_group)
 
@@ -885,8 +917,9 @@ class RestoreLayout:
 
         # replicate drawings
         source_dwgs = [item for item in saved_board.GetDrawings() if not isinstance(item, pcbnew.PCB_TEXT)]
-        self.replicate_drawings(src_anchor_fp, source_dwgs, self.dst_anchor_fp, self.layout_group)
-        pass
+        self.replicate_drawings(src_anchor_fp, source_dwgs, self.dst_anchor_fp, net_pairs, self.layout_group)
+
+        return self.board
 
     @staticmethod
     def get_net_pairs(dst_fps, src_fps):
@@ -1108,7 +1141,7 @@ class RestoreLayout:
                 txt_index = src_fp_text_items.index(src_text)
                 src_txt_pos = src_text.GetPosition()
                 src_txt_rel_pos = src_txt_pos - src_fp.fp.GetBoundingBox(False, False).Centre()
-                src_txt_orientation = src_text.GetTextAngle()
+                src_txt_orientation = src_text.GetTextAngleDegrees()
                 delta_angle = dst_fp_orientation - src_fp_orientation
 
                 dst_fp_pos = dst_fp.fp.GetBoundingBox(False, False).Centre()
@@ -1125,13 +1158,13 @@ class RestoreLayout:
                     dst_txt_rel_pos_rot = rotate_around_center(dst_txt_rel_pos, delta_angle)
                     dst_txt_pos = dst_fp_pos + pcbnew.VECTOR2I(dst_txt_rel_pos_rot[0], dst_txt_rel_pos_rot[1])
                     dst_text.SetPosition(dst_txt_pos)
-                    dst_text.SetTextAngle(-src_txt_orientation - anchor_delta_angle)
+                    dst_text.SetTextAngleDegrees(-src_txt_orientation - anchor_delta_angle)
                     dst_text.SetMirrored(not src_text.IsMirrored())
                 else:
                     dst_txt_rel_pos = rotate_around_center(src_txt_rel_pos, -delta_angle)
                     dst_txt_pos = dst_fp_pos + pcbnew.VECTOR2I(int(dst_txt_rel_pos[0]), int(dst_txt_rel_pos[1]))
                     dst_text.SetPosition(dst_txt_pos)
-                    dst_text.SetTextAngle(src_txt_orientation - anchor_delta_angle)
+                    dst_text.SetTextAngleDegrees(src_txt_orientation - anchor_delta_angle)
                     dst_text.SetMirrored(src_text.IsMirrored())
 
             # Add Footprint to group
@@ -1232,15 +1265,15 @@ class RestoreLayout:
                 # Allow keepout zones to be cloned.
                 if not zone.IsOnCopperLayer():
                     tup = [('', '')]
-            # TODO should probably need to cover the else case
-            else:
-                logger.info(f'unhandled net pair case with zone. The zone has a name: {repr(zone.GetZoneName())}\n'
-                            f'is connected: {repr(zone.IsConnected())}\n'
-                            f'is on net: {repr(zone.GetNetname())}\n'
-                            f'has flags: {repr(zone.GetFlags())}\n'
-                            f'is of class: {repr(zone.GetClass())}\n'
-                            f'is of type: {repr(zone.GetTypeDesc())}\n'
-                            f'has center at: {repr(zone.GetCenter())}\n')
+                # TODO should probably need to cover the else case
+                else:
+                    logger.info(f'unhandled net pair case with zone. The zone has a name: {repr(zone.GetZoneName())}\n'
+                                f'is connected: {repr(zone.IsConnected())}\n'
+                                f'is on net: {repr(zone.GetNetname())}\n'
+                                f'has flags: {repr(zone.GetFlags())}\n'
+                                f'is of class: {repr(zone.GetClass())}\n'
+                                f'is of type: {repr(zone.GetTypeDesc())}\n'
+                                f'has center at: {repr(zone.GetCenter())}\n')
 
             # start the clone
             to_net_name = tup[0][1]
@@ -1302,9 +1335,10 @@ class RestoreLayout:
 
             # Add text to group
             if layout_group:
-                layout_group.AddItem(layout_group)
+                pass
+                #layout_group.AddItem(layout_group)
 
-    def replicate_drawings(self, src_anchor_fp, src_drawings, dst_anchor_fp, layout_group):
+    def replicate_drawings(self, src_anchor_fp, src_drawings, dst_anchor_fp, net_pairs, layout_group):
         logger.info("Replicating drawings")
 
         # get anchor footprint
@@ -1316,6 +1350,9 @@ class RestoreLayout:
 
         move_vector = dst_anchor_fp_position - src_anchor_fp_position
         delta_orientation = dst_anchor_fp_angle - src_anchor_fp_angle
+
+        net_pairs, net_dict = net_pairs
+        logger.info(f'Net pairs are: {repr(net_pairs)}')
 
         # go through all the drawings
         nr_drawings = len(src_drawings)
@@ -1334,6 +1371,14 @@ class RestoreLayout:
                 new_drawing.Rotate(dst_anchor_fp_position, -rot_angle)
             else:
                 new_drawing.Rotate(dst_anchor_fp_position, delta_orientation)
+
+            # handle connectivity
+            if drawing.IsConnected():
+                from_net_name = drawing.GetNetname()
+                tup = [item for item in net_pairs if item[0] == from_net_name]
+                to_net_name = tup[0][1]
+                to_net_item = net_dict[to_net_name]
+                new_drawing.SetNet(to_net_item)
 
             self.board.Add(new_drawing)
 

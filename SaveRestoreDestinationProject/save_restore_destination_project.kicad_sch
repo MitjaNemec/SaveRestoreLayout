@@ -1,48 +1,165 @@
-(kicad_sch (version 20230121) (generator eeschema)
-
-  (uuid e63e39d7-6ac0-4ffd-8aa3-1841a4541b55)
-
-  (paper "A4")
-
-  (lib_symbols
-  )
-
-
-  (sheet (at 50.8 38.1) (size 26.67 25.4) (fields_autoplaced)
-    (stroke (width 0.1524) (type solid))
-    (fill (color 0 0 0 0.0000))
-    (uuid af51266b-d7f0-4c7a-9e9e-17996dccf72f)
-    (property "Sheetname" "Local1" (at 50.8 37.3884 0)
-      (effects (font (size 1.27 1.27)) (justify left bottom))
-    )
-    (property "Sheetfile" "local_1.kicad_sch" (at 50.8 64.0846 0)
-      (effects (font (size 1.27 1.27)) (justify left top))
-    )
-    (instances
-      (project "save_restore_destination_project"
-        (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55" (page "2"))
-      )
-    )
-  )
-
-  (sheet (at 88.9 38.1) (size 25.4 25.4) (fields_autoplaced)
-    (stroke (width 0.1524) (type solid))
-    (fill (color 0 0 0 0.0000))
-    (uuid b08753a4-378d-4554-bcd9-641d7cd6cb4d)
-    (property "Sheetname" "Local2" (at 88.9 37.3884 0)
-      (effects (font (size 1.27 1.27)) (justify left bottom))
-    )
-    (property "Sheetfile" "local_2.kicad_sch" (at 88.9 64.0846 0)
-      (effects (font (size 1.27 1.27)) (justify left top))
-    )
-    (instances
-      (project "save_restore_destination_project"
-        (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55" (page "5"))
-      )
-    )
-  )
-
-  (sheet_instances
-    (path "/" (page "1"))
-  )
+(kicad_sch
+	(version 20231120)
+	(generator "eeschema")
+	(generator_version "8.0")
+	(uuid "7413d3c9-b6cd-43bb-b083-7571861f5f72")
+	(paper "A4")
+	(lib_symbols)
+	(sheet
+		(at 88.9 25.4)
+		(size 25.4 25.4)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0.0000)
+		)
+		(uuid "45f62f98-c107-40ad-a55f-a510b1d0b91a")
+		(property "Sheetname" "relative_1"
+			(at 88.9 24.6884 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "relative_source/remote_1.kicad_sch"
+			(at 88.9 51.3846 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "save_restore_destination_project"
+				(path "/7413d3c9-b6cd-43bb-b083-7571861f5f72"
+					(page "6")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 50.8 25.4)
+		(size 25.4 24.13)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0.0000)
+		)
+		(uuid "5c1501d4-c5eb-46e7-b511-19f72ade8467")
+		(property "Sheetname" "local_1"
+			(at 50.8 24.6884 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "local_1.kicad_sch"
+			(at 50.8 50.1146 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "save_restore_destination_project"
+				(path "/7413d3c9-b6cd-43bb-b083-7571861f5f72"
+					(page "2")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 88.9 76.2)
+		(size 25.4 25.4)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0.0000)
+		)
+		(uuid "7639ae0e-5c17-47ac-bd68-5e1393487341")
+		(property "Sheetname" "relative_2"
+			(at 88.9 75.4884 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "relative_source/remote_2.kicad_sch"
+			(at 88.9 102.1846 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "save_restore_destination_project"
+				(path "/7413d3c9-b6cd-43bb-b083-7571861f5f72"
+					(page "8")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 50.8 76.2)
+		(size 25.4 25.4)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0.0000)
+		)
+		(uuid "db860c80-27b8-4903-8833-c8c4d330c48f")
+		(property "Sheetname" "local_2"
+			(at 50.8 75.4884 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "local_2.kicad_sch"
+			(at 50.8 102.1846 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "save_restore_destination_project"
+				(path "/7413d3c9-b6cd-43bb-b083-7571861f5f72"
+					(page "5")
+				)
+			)
+		)
+	)
+	(sheet_instances
+		(path "/"
+			(page "1")
+		)
+	)
 )

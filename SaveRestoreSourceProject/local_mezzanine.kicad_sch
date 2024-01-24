@@ -2,7 +2,7 @@
 	(version 20231120)
 	(generator "eeschema")
 	(generator_version "8.0")
-	(uuid "7d869834-130a-469e-8733-164f5060ff2b")
+	(uuid "68d5e95a-46cc-4344-831d-873da18c9e59")
 	(paper "A4")
 	(lib_symbols
 		(symbol "Device:C"
@@ -265,67 +265,67 @@
 	)
 	(wire
 		(pts
-			(xy 127 50.8) (xy 129.54 50.8)
+			(xy 48.26 49.53) (xy 50.8 49.53)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "1000df0c-5a50-41f4-93c2-4c00e0068d29")
+		(uuid "0dbb398e-9848-48d3-ba32-001e16ee2aa2")
 	)
 	(wire
 		(pts
-			(xy 88.9 50.8) (xy 91.44 50.8)
+			(xy 76.2 49.53) (xy 78.74 49.53)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "4a113ec3-8d26-45ea-a85f-6fae8f7caaa7")
+		(uuid "367cac61-493f-42b2-b14c-c87279668881")
 	)
 	(wire
 		(pts
-			(xy 50.8 50.8) (xy 53.34 50.8)
+			(xy 124.46 49.53) (xy 127 49.53)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "adec31e9-5e02-46f2-adf0-f51ab87eb095")
+		(uuid "95bb1bf4-8e91-47bf-a0bb-1593e1162820")
 	)
 	(wire
 		(pts
-			(xy 60.96 50.8) (xy 63.5 50.8)
+			(xy 86.36 49.53) (xy 88.9 49.53)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "c9428657-edd6-4bb7-a06a-21a2bd9164a6")
+		(uuid "9dd83801-04f0-444a-a10f-46b20670006c")
 	)
 	(wire
 		(pts
-			(xy 137.16 50.8) (xy 139.7 50.8)
+			(xy 38.1 49.53) (xy 40.64 49.53)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "e5e022d8-f932-400f-b8e0-57ace0ba91f6")
+		(uuid "cb883050-a245-4985-afef-496c6f4e20cb")
 	)
 	(wire
 		(pts
-			(xy 99.06 50.8) (xy 101.6 50.8)
+			(xy 114.3 49.53) (xy 116.84 49.53)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "f2909583-20b0-4b51-a34b-3b7a895f3e52")
+		(uuid "d46ed06e-9830-49b3-8dd9-1ed8e76cee63")
 	)
 	(hierarchical_label "out"
 		(shape output)
-		(at 139.7 50.8 0)
+		(at 127 49.53 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -333,11 +333,11 @@
 			)
 			(justify left)
 		)
-		(uuid "5ab19c1f-a741-4b4f-b7dd-1ea939439340")
+		(uuid "c22dcdee-92d5-4983-bcef-17bd6e15436d")
 	)
 	(hierarchical_label "in"
 		(shape input)
-		(at 50.8 50.8 180)
+		(at 38.1 49.53 180)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -345,19 +345,19 @@
 			)
 			(justify right)
 		)
-		(uuid "8c5c1188-cc6c-429f-a920-4ebab087f494")
+		(uuid "d6356605-ba50-4db3-8985-eeb2aaa96513")
 	)
 	(symbol
 		(lib_id "Device:R")
-		(at 133.35 50.8 90)
+		(at 120.65 49.53 90)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "33691ece-5294-4930-b2d6-eef9b36f3df5")
-		(property "Reference" "R202"
-			(at 133.35 48.768 90)
+		(uuid "33e7814b-1c8c-4fd3-9386-88f488d7420f")
+		(property "Reference" "R602"
+			(at 120.65 47.498 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -365,7 +365,7 @@
 			)
 		)
 		(property "Value" "R"
-			(at 133.35 50.8 90)
+			(at 120.65 49.53 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -373,7 +373,7 @@
 			)
 		)
 		(property "Footprint" "Resistor_SMD:R_1206_3216Metric"
-			(at 133.35 52.578 90)
+			(at 120.65 51.308 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -382,7 +382,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 133.35 50.8 0)
+			(at 120.65 49.53 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -391,7 +391,7 @@
 			)
 		)
 		(property "Description" "Resistor"
-			(at 133.35 50.8 0)
+			(at 120.65 49.53 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -400,25 +400,82 @@
 			)
 		)
 		(pin "2"
-			(uuid "0c940df7-6377-4f14-8ff9-ba7ba89fb37f")
+			(uuid "423e2797-8b0a-422d-928d-38d32fdf3608")
 		)
 		(pin "1"
-			(uuid "f384a2a6-7a8e-4e92-9605-69d94a6dffcb")
+			(uuid "bedb3df8-4b26-471b-aec7-03f3990567a2")
 		)
 		(instances
-			(project "save_restore_destination_project"
-				(path "/7413d3c9-b6cd-43bb-b083-7571861f5f72/5c1501d4-c5eb-46e7-b511-19f72ade8467"
-					(reference "R202")
+			(project "save_restore_source_project"
+				(path "/c2758c0b-1161-4b10-8169-92fe64b84f07/9149b517-907e-476c-b9fd-b9a200e02b90/f2f95bae-3322-4e7d-a4a0-f5ab9d86395c"
+					(reference "R602")
 					(unit 1)
 				)
 			)
-			(project "save_restore_source_project"
-				(path "/c2758c0b-1161-4b10-8169-92fe64b84f07/33459381-b272-4f48-810a-418c8cd77a8b"
-					(reference "R202")
-					(unit 1)
+		)
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 44.45 49.53 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "93a54550-8304-4aac-99fa-afdb2f71678a")
+		(property "Reference" "R601"
+			(at 44.45 47.498 90)
+			(effects
+				(font
+					(size 1.27 1.27)
 				)
-				(path "/c2758c0b-1161-4b10-8169-92fe64b84f07/b97944b3-f7e5-4d2e-8913-330464d34be4"
-					(reference "R402")
+			)
+		)
+		(property "Value" "R"
+			(at 44.45 49.53 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_1206_3216Metric"
+			(at 44.45 51.308 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 44.45 49.53 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Resistor"
+			(at 44.45 49.53 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "2"
+			(uuid "4a25166b-4975-4ebf-a659-d523e5800667")
+		)
+		(pin "1"
+			(uuid "5f213194-ef26-47a3-872e-51f4d9992ce4")
+		)
+		(instances
+			(project "save_restore_source_project"
+				(path "/c2758c0b-1161-4b10-8169-92fe64b84f07/9149b517-907e-476c-b9fd-b9a200e02b90/f2f95bae-3322-4e7d-a4a0-f5ab9d86395c"
+					(reference "R601")
 					(unit 1)
 				)
 			)
@@ -426,15 +483,15 @@
 	)
 	(symbol
 		(lib_id "Device:C")
-		(at 95.25 50.8 90)
+		(at 82.55 49.53 90)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "70b3a8cd-bb52-432a-a8ac-0e7f781eb24d")
-		(property "Reference" "C201"
-			(at 92.71 50.165 0)
+		(uuid "be6065e0-40c8-44fd-a4de-094563e13cbc")
+		(property "Reference" "C601"
+			(at 80.01 48.895 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -443,7 +500,7 @@
 			)
 		)
 		(property "Value" "C"
-			(at 97.79 50.165 0)
+			(at 85.09 48.895 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -452,7 +509,7 @@
 			)
 		)
 		(property "Footprint" "Capacitor_SMD:C_1206_3216Metric"
-			(at 99.06 49.8348 0)
+			(at 86.36 48.5648 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -461,7 +518,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 95.25 50.8 0)
+			(at 82.55 49.53 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -470,7 +527,7 @@
 			)
 		)
 		(property "Description" "Unpolarized capacitor"
-			(at 95.25 50.8 0)
+			(at 82.55 49.53 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -479,109 +536,22 @@
 			)
 		)
 		(pin "1"
-			(uuid "bce609cb-3195-453b-979f-8cbab358d980")
+			(uuid "42fa40d9-2e4f-4268-85a9-0b485041abda")
 		)
 		(pin "2"
-			(uuid "2e2f6fe7-82f2-45c7-9d75-a532e9e1756a")
+			(uuid "242bd58f-c19f-4562-88f2-2fd1109761a6")
 		)
 		(instances
-			(project "save_restore_destination_project"
-				(path "/7413d3c9-b6cd-43bb-b083-7571861f5f72/5c1501d4-c5eb-46e7-b511-19f72ade8467"
-					(reference "C201")
-					(unit 1)
-				)
-			)
 			(project "save_restore_source_project"
-				(path "/c2758c0b-1161-4b10-8169-92fe64b84f07/b97944b3-f7e5-4d2e-8913-330464d34be4"
-					(reference "C401")
-					(unit 1)
-				)
-				(path "/c2758c0b-1161-4b10-8169-92fe64b84f07/33459381-b272-4f48-810a-418c8cd77a8b"
-					(reference "C201")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "Device:R")
-		(at 57.15 50.8 90)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(uuid "c2b8c93d-6fa9-42ee-a088-81017cee2766")
-		(property "Reference" "R201"
-			(at 57.15 48.768 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "R"
-			(at 57.15 50.8 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" "Resistor_SMD:R_1206_3216Metric"
-			(at 57.15 52.578 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 57.15 50.8 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Resistor"
-			(at 57.15 50.8 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "2"
-			(uuid "7a784fdb-2a34-4838-b28c-d9033412d0a1")
-		)
-		(pin "1"
-			(uuid "14527898-15cf-4baf-94da-d49a34490d55")
-		)
-		(instances
-			(project "save_restore_destination_project"
-				(path "/7413d3c9-b6cd-43bb-b083-7571861f5f72/5c1501d4-c5eb-46e7-b511-19f72ade8467"
-					(reference "R201")
-					(unit 1)
-				)
-			)
-			(project "save_restore_source_project"
-				(path "/c2758c0b-1161-4b10-8169-92fe64b84f07/b97944b3-f7e5-4d2e-8913-330464d34be4"
-					(reference "R401")
-					(unit 1)
-				)
-				(path "/c2758c0b-1161-4b10-8169-92fe64b84f07/33459381-b272-4f48-810a-418c8cd77a8b"
-					(reference "R201")
+				(path "/c2758c0b-1161-4b10-8169-92fe64b84f07/9149b517-907e-476c-b9fd-b9a200e02b90/f2f95bae-3322-4e7d-a4a0-f5ab9d86395c"
+					(reference "C601")
 					(unit 1)
 				)
 			)
 		)
 	)
 	(sheet
-		(at 101.6 38.1)
+		(at 50.8 36.83)
 		(size 25.4 25.4)
 		(fields_autoplaced yes)
 		(stroke
@@ -591,9 +561,9 @@
 		(fill
 			(color 0 0 0 0.0000)
 		)
-		(uuid "66ac6500-50ff-43f2-9cd7-3ecf78b90733")
-		(property "Sheetname" "local_2_b"
-			(at 101.6 37.3884 0)
+		(uuid "948685a9-b9f9-4034-9b22-1abd98bc98cd")
+		(property "Sheetname" "local_2_a1"
+			(at 50.8 36.1184 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -602,7 +572,7 @@
 			)
 		)
 		(property "Sheetfile" "local_2.kicad_sch"
-			(at 101.6 64.0846 0)
+			(at 50.8 62.8146 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -611,35 +581,28 @@
 			)
 		)
 		(pin "out" output
-			(at 127 50.8 0)
+			(at 76.2 49.53 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify right)
 			)
-			(uuid "17cb7759-f2fb-4644-a939-5c824aa921ca")
+			(uuid "ea576156-3f84-4699-adef-b0dcf2b3ec7e")
 		)
 		(pin "in" input
-			(at 101.6 50.8 180)
+			(at 50.8 49.53 180)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify left)
 			)
-			(uuid "bcba2058-3a10-40a7-8c9d-156449355ad2")
-		)
-		(instances
-			(project "save_restore_source_project"
-				(path "/c2758c0b-1161-4b10-8169-92fe64b84f07/33459381-b272-4f48-810a-418c8cd77a8b"
-					(page "4")
-				)
-			)
+			(uuid "cee43de2-a440-49f7-9566-3d5df59e13b8")
 		)
 	)
 	(sheet
-		(at 63.5 38.1)
+		(at 88.9 36.83)
 		(size 25.4 25.4)
 		(fields_autoplaced yes)
 		(stroke
@@ -649,9 +612,9 @@
 		(fill
 			(color 0 0 0 0.0000)
 		)
-		(uuid "baad279f-c31f-4606-a3ca-67fdd8efa80b")
-		(property "Sheetname" "local_2_a"
-			(at 63.5 37.3884 0)
+		(uuid "e77a785f-a362-40de-a129-f0b0a2e55d28")
+		(property "Sheetname" "local_2_b1"
+			(at 88.9 36.1184 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -660,7 +623,7 @@
 			)
 		)
 		(property "Sheetfile" "local_2.kicad_sch"
-			(at 63.5 64.0846 0)
+			(at 88.9 62.8146 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -669,24 +632,24 @@
 			)
 		)
 		(pin "out" output
-			(at 88.9 50.8 0)
+			(at 114.3 49.53 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify right)
 			)
-			(uuid "962ad028-cb9a-4bf8-9092-56653cdffc9c")
+			(uuid "bfa4926b-2eb3-4219-a641-5b252b5d7386")
 		)
 		(pin "in" input
-			(at 63.5 50.8 180)
+			(at 88.9 49.53 180)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify left)
 			)
-			(uuid "e9217cf4-3bc9-40f5-bf56-c55879c7481f")
+			(uuid "9dc4a82e-22e4-4f9e-8ef0-bd24b4d5a5e1")
 		)
 	)
 )
