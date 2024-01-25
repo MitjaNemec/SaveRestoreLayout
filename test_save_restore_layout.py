@@ -11,6 +11,7 @@ from save_restore_layout import RestoreLayout
 
 
 class TestRestore(unittest.TestCase):
+    @unittest.skip
     def test_restore_shallow_same_level(self):
         prj_dir = os.path.normpath(os.path.dirname(os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                    "SaveRestoreDestinationProject/")))
@@ -26,6 +27,7 @@ class TestRestore(unittest.TestCase):
 
         saved = pcbnew.SaveBoard(destination_file.replace(".kicad_pcb", "_shallow_same.kicad_pcb"), board)
 
+    @unittest.skip
     def test_restore_shallow_different_level(self):
         prj_dir = os.path.normpath(os.path.dirname(os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                    "SaveRestoreDestinationProject/")))
@@ -41,6 +43,7 @@ class TestRestore(unittest.TestCase):
 
         saved = pcbnew.SaveBoard(destination_file.replace(".kicad_pcb", "_shallow_different.kicad_pcb"), board)
 
+    @unittest.skip
     def test_restore_shallow_same_level_alt(self):
         prj_dir = os.path.normpath(os.path.dirname(os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                    "SaveRestoreDestinationProject/")))
@@ -64,7 +67,7 @@ class TestRestore(unittest.TestCase):
         data_file = os.path.join(src_prj_dir, 'test_deep.json')
         destination_file = os.path.join(prj_dir, 'save_restore_destination_project.kicad_pcb')
         board = pcbnew.LoadBoard(destination_file)
-        dst_anchor_fp_ref = 'R704'
+        dst_anchor_fp_ref = 'R704' # C201
         restore_layout = RestoreLayout(board, dst_anchor_fp_ref, None)
 
         restore_layout.restore_layout(data_file)

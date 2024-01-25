@@ -793,6 +793,14 @@ class RestoreLayout:
 
         self.dst_anchor_fp = self.prj_data.get_fp_by_ref(dst_anchor_fp_ref)
 
+        # check if there are more footprints with same ID
+        for fp in self.prj_data.footprints:
+            if fp.ref != self.dst_anchor_fp.ref:
+                if fp.fp_id == self.dst_anchor_fp.fp_id:
+                    logger.info("There is more than one footprint with same ID in the target layout."
+                                "This is due the multiple hierarchical sheets. The plugin can not resolve this issue")
+
+
     def restore_layout(self, layout_file):
         logger.info("Loading saved design")
         # load saved design
@@ -885,8 +893,8 @@ class RestoreLayout:
 
         # sort by ID - I am counting that source and destination sheet have been
         # annotated by KiCad in their final form (reset annotation and then re-annotate)
-        footprints_to_place = sorted(footprints_to_place, key=lambda x: (x.fp_id, x.ref))
-        saved_fps = sorted(saved_fps, key=lambda x: (x.fp_id, x.ref))
+        footprints_to_place = sorted(footprints_to_place, key=lambda x: (x.fp_id, x.sheet_id))
+        saved_fps = sorted(saved_fps, key=lambda x: (x.fp_id, x.sheet_id))
 
         # get the saved layout ID numbers and try to figure out a match (at least the same depth, ...)
         # find net pairs
@@ -900,8 +908,32 @@ class RestoreLayout:
         else:
             self.layout_group = None
 
-        # replicate footprints
         src_anchor_fp = saved_fps[footprints_to_place.index(self.dst_anchor_fp)]
+        # find matching source anchor footprint
+        list_of_possible_anchor_footprints = []
+        for fp in saved_fps:
+            if fp.fp_id == self.dst_anchor_fp.fp_id:
+                list_of_possible_anchor_footprints.append(fp)
+
+        # if there is only one
+        if len(list_of_possible_anchor_footprints) == 1:
+            src_anchor_fp = list_of_possible_anchor_footprints[0]
+        # if there are more then one, we're dealing with multiple hierarchy
+        # the correct one is the one who's path is the best match to the sheet path
+        else:
+            list_of_matches = []
+            for fp in list_of_possible_anchor_footprints:
+                index = list_of_possible_anchor_footprints.index(fp)
+                matches = 0
+                for item in self.dst_anchor_fp.sheet_id:
+                    if item in fp.sheet_id:
+                        matches = matches + 1
+                list_of_matches.append((index, matches))
+            # select the one with most matches
+            index, _ = max(list_of_matches, key=lambda x: x[1])
+            src_anchor_fp = list_of_possible_anchor_footprints[index]
+
+        # replicate footprints
         self.replicate_footprints(src_anchor_fp, saved_fps, self.dst_anchor_fp, footprints_to_place, self.layout_group)
 
         # replicate tracks
