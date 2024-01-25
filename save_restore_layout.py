@@ -800,7 +800,6 @@ class RestoreLayout:
                     logger.info("There is more than one footprint with same ID in the target layout."
                                 "This is due the multiple hierarchical sheets. The plugin can not resolve this issue")
 
-
     def restore_layout(self, layout_file):
         logger.info("Loading saved design")
         # load saved design
@@ -908,32 +907,8 @@ class RestoreLayout:
         else:
             self.layout_group = None
 
-        src_anchor_fp = saved_fps[footprints_to_place.index(self.dst_anchor_fp)]
-        # find matching source anchor footprint
-        list_of_possible_anchor_footprints = []
-        for fp in saved_fps:
-            if fp.fp_id == self.dst_anchor_fp.fp_id:
-                list_of_possible_anchor_footprints.append(fp)
-
-        # if there is only one
-        if len(list_of_possible_anchor_footprints) == 1:
-            src_anchor_fp = list_of_possible_anchor_footprints[0]
-        # if there are more then one, we're dealing with multiple hierarchy
-        # the correct one is the one who's path is the best match to the sheet path
-        else:
-            list_of_matches = []
-            for fp in list_of_possible_anchor_footprints:
-                index = list_of_possible_anchor_footprints.index(fp)
-                matches = 0
-                for item in self.dst_anchor_fp.sheet_id:
-                    if item in fp.sheet_id:
-                        matches = matches + 1
-                list_of_matches.append((index, matches))
-            # select the one with most matches
-            index, _ = max(list_of_matches, key=lambda x: x[1])
-            src_anchor_fp = list_of_possible_anchor_footprints[index]
-
         # replicate footprints
+        src_anchor_fp = self.match_fp_in_list(self.dst_anchor_fp, saved_fps)
         self.replicate_footprints(src_anchor_fp, saved_fps, self.dst_anchor_fp, footprints_to_place, self.layout_group)
 
         # replicate tracks
@@ -1052,7 +1027,35 @@ class RestoreLayout:
         return net_pairs_clean, net_dict
 
     @staticmethod
-    def replicate_footprints(src_anchor_fp, src_fps, dst_anchor_fp, dst_fps, layout_group):
+    def match_fp_in_list(footprint, fp_list):
+        # find proper match in source footprints
+        list_of_possible_dst_footprints = []
+        for d_fp in fp_list:
+            if d_fp.fp_id == footprint.fp_id:
+                list_of_possible_dst_footprints.append(d_fp)
+
+        # if there is more than one possible anchor, select the correct one
+        if len(list_of_possible_dst_footprints) == 1:
+            dst_fp = list_of_possible_dst_footprints[0]
+        else:
+            list_of_matches = []
+            for fp in list_of_possible_dst_footprints:
+                index = list_of_possible_dst_footprints.index(fp)
+                matches = 0
+                for item in footprint.sheet_id:
+                    if item in fp.sheet_id:
+                        matches = matches + 1
+                list_of_matches.append((index, matches))
+            # check if list is empty, if it is, then it is highly likely that schematics and pcb are not in sync
+            if not list_of_matches:
+                raise LookupError("Can not find destination footprint for source footprint: " + repr(src_fp.ref)
+                                  + "\n" + "Most likely, schematics and PCB are not in sync")
+            # select the one with most matches
+            index, _ = max(list_of_matches, key=lambda item: item[1])
+            dst_fp = list_of_possible_dst_footprints[index]
+        return dst_fp
+
+    def replicate_footprints(self, src_anchor_fp, src_fps, dst_anchor_fp, dst_fps, layout_group):
         logger.info("Replicating footprints")
 
         dst_anchor_fp_angle = dst_anchor_fp.fp.GetOrientationDegrees()
@@ -1070,31 +1073,7 @@ class RestoreLayout:
         for fp_index in range(nr_footprints):
             src_fp = src_footprints[fp_index]
 
-            # find proper match in source footprints
-            list_of_possible_dst_footprints = []
-            for d_fp in dst_footprints:
-                if d_fp.fp_id == src_fp.fp_id:
-                    list_of_possible_dst_footprints.append(d_fp)
-
-            # if there is more than one possible anchor, select the correct one
-            if len(list_of_possible_dst_footprints) == 1:
-                dst_fp = list_of_possible_dst_footprints[0]
-            else:
-                list_of_matches = []
-                for fp in list_of_possible_dst_footprints:
-                    index = list_of_possible_dst_footprints.index(fp)
-                    matches = 0
-                    for item in src_fp.sheet_id:
-                        if item in fp.sheet_id:
-                            matches = matches + 1
-                    list_of_matches.append((index, matches))
-                # check if list is empty, if it is, then it is highly likely that schematics and pcb are not in sync
-                if not list_of_matches:
-                    raise LookupError("Can not find destination footprint for source footprint: " + repr(src_fp.ref)
-                                      + "\n" + "Most likely, schematics and PCB are not in sync")
-                # select the one with most matches
-                index, _ = max(list_of_matches, key=lambda item: item[1])
-                dst_fp = list_of_possible_dst_footprints[index]
+            dst_fp = self.match_fp_in_list(src_fp, dst_footprints)
 
             # skip locked footprints
             # TODO
