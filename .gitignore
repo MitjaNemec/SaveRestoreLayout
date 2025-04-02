@@ -36,3 +36,4 @@ restore_layout_dialog_GUI.py
 /SaveRestoreSourceProject/test_shallow_remote.pckl
 /SaveRestoreDestinationProject/save_restore_destination_project_shallow_different.kicad_pcb
 /SaveRestoreDestinationProject/save_restore_destination_project_shallow_different.kicad_pro
+deprecation_dialog_GUI.py

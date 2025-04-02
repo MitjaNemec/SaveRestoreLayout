@@ -34,6 +34,7 @@ cp save_restore_layout.py plugins
 cp save_layout_dialog_GUI.py plugins
 cp restore_layout_dialog_GUI.py plugins
 cp error_dialog_GUI.py plugins
+cp deprecation_dialog_GUI.py plugins
 cp initial_dialog_GUI.py plugins
 cp version.txt plugins
 mkdir resources
