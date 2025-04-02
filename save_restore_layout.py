@@ -1108,7 +1108,7 @@ class RestoreLayout:
             dst_fp.fp.SetLocalSolderMaskMargin(src_fp.fp.GetLocalSolderMaskMargin())
             dst_fp.fp.SetLocalSolderPasteMargin(src_fp.fp.GetLocalSolderPasteMargin())
             dst_fp.fp.SetLocalSolderPasteMarginRatio(src_fp.fp.GetLocalSolderPasteMarginRatio())
-            dst_fp.fp.SetZoneConnection(src_fp.fp.GetZoneConnection())
+            dst_fp.fp.SetLocalZoneConnection(src_fp.fp.GetLocalZoneConnection())
 
             # flip if dst anchor is flipped with regards to src anchor
             if src_anchor_fp.fp.IsFlipped() != dst_anchor_fp.fp.IsFlipped():
