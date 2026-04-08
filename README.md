@@ -1,5 +1,5 @@
 
-# Save Restore Layout
+# KiCad Save Restore Layout plugin
 
 This plugin implements footprint modules or snippets feature. The plugin saves partial layout corresponding to footprints from one hierarchical sheet so that it can be restored in other projects. All projects have to use the same hierarchical sheet schematics. If the schematics has been edited, the plugin will refuse to restore the layout. So in projects where you need to change the schematics slightly, first restore the layout and then change the schematics.
 
