@@ -15,6 +15,6 @@ There is a [bug](https://gitlab.com/kicad/code/kicad/-/issues/11076) in KiCad wh
 
 **Author :** doc.dr. Mitja Nemec
 
-**Date :** 2022-2025
+**Date :** 2025
 
 
