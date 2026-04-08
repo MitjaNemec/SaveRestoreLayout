@@ -13,8 +13,8 @@ in with PCM with `Install from file` option
 
 There is a [bug](https://gitlab.com/kicad/code/kicad/-/issues/11076) in KiCad when reusing hierarchical sheets which contain multiple instances of same nested sheet. the bug causes unintended changes in schematics files, which will cause the plugin to fail. Please read the bug description which also contains a workaround for such cases.
 
-** Author : ** doc.dr. Mitja Nemec
+**Author :** doc.dr. Mitja Nemec
 
-** Date : ** 2022-2025
+**Date :** 2022-2025
 
 
