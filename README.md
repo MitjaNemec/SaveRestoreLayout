@@ -2,7 +2,7 @@
 # KiCad Save Restore Layout plugin
 
 > [!NOTE]
-> The functionality of this plugin is now available in KiCad natively! As such, this plugin is no longer updated. For details on KiCad's multichannel implementation, see [official KiCad documentation](https://docs.kicad.org/10.0/en/pcbnew/pcbnew.html#multichannel).
+> The functionality of this plugin is now available in KiCad natively! As such, this plugin is no longer updated. For details on KiCad's multichannel implementation, see [official KiCad documentation](https://docs.kicad.org/10.0/en/pcbnew/pcbnew.html#pcb-design-blocks).
 
 This plugin implements footprint modules or snippets feature. The plugin saves partial layout corresponding to footprints from one hierarchical sheet so that it can be restored in other projects. All projects have to use the same hierarchical sheet schematics. If the schematics has been edited, the plugin will refuse to restore the layout. So in projects where you need to change the schematics slightly, first restore the layout and then change the schematics.
 
